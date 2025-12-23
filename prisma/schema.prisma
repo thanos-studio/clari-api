@@ -17,6 +17,10 @@ model User {
   id          String        @id @default(uuid())
   email       String        @unique
   name        String?
+  googleId    String?       @unique
+  profileUrl  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   Note        Note[]
   KeywordPack KeywordPack[]
 }

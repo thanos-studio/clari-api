@@ -433,10 +433,6 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
 export type NoteCreateWithoutAuthorInput = {
   id?: string
   title: string
