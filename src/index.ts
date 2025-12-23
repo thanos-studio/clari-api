@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import authRouter from './routes/auth'
+import noteRouter from './routes/note'
 import { authMiddleware } from './middleware/auth'
 import prisma from './db'
 
@@ -17,6 +18,7 @@ app.get('/', (c) => {
 })
 
 app.route('/auth', authRouter)
+app.route('/notes', noteRouter)
 
 app.get('/me', authMiddleware, async (c) => {
   const userId = c.get('userId')

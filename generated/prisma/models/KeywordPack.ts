@@ -419,10 +419,6 @@ export type KeywordPackUncheckedUpdateManyWithoutAuthorNestedInput = {
   deleteMany?: Prisma.KeywordPackScalarWhereInput | Prisma.KeywordPackScalarWhereInput[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type KeywordPackCreateWithoutAuthorInput = {
   id?: string
   name: string
