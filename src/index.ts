@@ -40,4 +40,7 @@ app.get('/me', authMiddleware, async (c) => {
   return c.json({ user })
 })
 
-export default app
+export default {
+    port: 80,
+    fetch: app.fetch,
+}

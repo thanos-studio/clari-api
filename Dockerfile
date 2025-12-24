@@ -34,5 +34,5 @@ COPY --from=prerelease /usr/src/app/prisma ./prisma
 
 # run the app
 USER bun
-EXPOSE 3000/tcp
+EXPOSE 80/tcp
 ENTRYPOINT [ "bun", "run", "dist/index.js" ]
