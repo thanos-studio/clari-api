@@ -29,6 +29,8 @@ model Note {
   id                String    @id @default(uuid())
   title             String
   content           String?   @db.Text
+  aiSummary         String?   @db.Text
+  speakers          Json?
   durationInSeconds Int       @default(0)
   isPublic          Boolean   @default(false)
   recordingUrl      String?

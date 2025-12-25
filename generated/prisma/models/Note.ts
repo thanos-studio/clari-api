@@ -38,6 +38,7 @@ export type NoteMinAggregateOutputType = {
   id: string | null
   title: string | null
   content: string | null
+  aiSummary: string | null
   durationInSeconds: number | null
   isPublic: boolean | null
   recordingUrl: string | null
@@ -51,6 +52,7 @@ export type NoteMaxAggregateOutputType = {
   id: string | null
   title: string | null
   content: string | null
+  aiSummary: string | null
   durationInSeconds: number | null
   isPublic: boolean | null
   recordingUrl: string | null
@@ -64,6 +66,8 @@ export type NoteCountAggregateOutputType = {
   id: number
   title: number
   content: number
+  aiSummary: number
+  speakers: number
   durationInSeconds: number
   isPublic: number
   recordingUrl: number
@@ -87,6 +91,7 @@ export type NoteMinAggregateInputType = {
   id?: true
   title?: true
   content?: true
+  aiSummary?: true
   durationInSeconds?: true
   isPublic?: true
   recordingUrl?: true
@@ -100,6 +105,7 @@ export type NoteMaxAggregateInputType = {
   id?: true
   title?: true
   content?: true
+  aiSummary?: true
   durationInSeconds?: true
   isPublic?: true
   recordingUrl?: true
@@ -113,6 +119,8 @@ export type NoteCountAggregateInputType = {
   id?: true
   title?: true
   content?: true
+  aiSummary?: true
+  speakers?: true
   durationInSeconds?: true
   isPublic?: true
   recordingUrl?: true
@@ -213,6 +221,8 @@ export type NoteGroupByOutputType = {
   id: string
   title: string
   content: string | null
+  aiSummary: string | null
+  speakers: runtime.JsonValue | null
   durationInSeconds: number
   isPublic: boolean
   recordingUrl: string | null
@@ -249,6 +259,8 @@ export type NoteWhereInput = {
   id?: Prisma.StringFilter<"Note"> | string
   title?: Prisma.StringFilter<"Note"> | string
   content?: Prisma.StringNullableFilter<"Note"> | string | null
+  aiSummary?: Prisma.StringNullableFilter<"Note"> | string | null
+  speakers?: Prisma.JsonNullableFilter<"Note">
   durationInSeconds?: Prisma.IntFilter<"Note"> | number
   isPublic?: Prisma.BoolFilter<"Note"> | boolean
   recordingUrl?: Prisma.StringNullableFilter<"Note"> | string | null
@@ -263,6 +275,8 @@ export type NoteOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
   content?: Prisma.SortOrderInput | Prisma.SortOrder
+  aiSummary?: Prisma.SortOrderInput | Prisma.SortOrder
+  speakers?: Prisma.SortOrderInput | Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
   recordingUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -280,6 +294,8 @@ export type NoteWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.NoteWhereInput | Prisma.NoteWhereInput[]
   title?: Prisma.StringFilter<"Note"> | string
   content?: Prisma.StringNullableFilter<"Note"> | string | null
+  aiSummary?: Prisma.StringNullableFilter<"Note"> | string | null
+  speakers?: Prisma.JsonNullableFilter<"Note">
   durationInSeconds?: Prisma.IntFilter<"Note"> | number
   isPublic?: Prisma.BoolFilter<"Note"> | boolean
   recordingUrl?: Prisma.StringNullableFilter<"Note"> | string | null
@@ -294,6 +310,8 @@ export type NoteOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
   content?: Prisma.SortOrderInput | Prisma.SortOrder
+  aiSummary?: Prisma.SortOrderInput | Prisma.SortOrder
+  speakers?: Prisma.SortOrderInput | Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
   recordingUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -315,6 +333,8 @@ export type NoteScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Note"> | string
   title?: Prisma.StringWithAggregatesFilter<"Note"> | string
   content?: Prisma.StringNullableWithAggregatesFilter<"Note"> | string | null
+  aiSummary?: Prisma.StringNullableWithAggregatesFilter<"Note"> | string | null
+  speakers?: Prisma.JsonNullableWithAggregatesFilter<"Note">
   durationInSeconds?: Prisma.IntWithAggregatesFilter<"Note"> | number
   isPublic?: Prisma.BoolWithAggregatesFilter<"Note"> | boolean
   recordingUrl?: Prisma.StringNullableWithAggregatesFilter<"Note"> | string | null
@@ -328,6 +348,8 @@ export type NoteCreateInput = {
   id?: string
   title: string
   content?: string | null
+  aiSummary?: string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: number
   isPublic?: boolean
   recordingUrl?: string | null
@@ -341,6 +363,8 @@ export type NoteUncheckedCreateInput = {
   id?: string
   title: string
   content?: string | null
+  aiSummary?: string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: number
   isPublic?: boolean
   recordingUrl?: string | null
@@ -354,6 +378,8 @@ export type NoteUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -367,6 +393,8 @@ export type NoteUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -380,6 +408,8 @@ export type NoteCreateManyInput = {
   id?: string
   title: string
   content?: string | null
+  aiSummary?: string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: number
   isPublic?: boolean
   recordingUrl?: string | null
@@ -393,6 +423,8 @@ export type NoteUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -405,6 +437,8 @@ export type NoteUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -428,6 +462,8 @@ export type NoteCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  aiSummary?: Prisma.SortOrder
+  speakers?: Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
   recordingUrl?: Prisma.SortOrder
@@ -445,6 +481,7 @@ export type NoteMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  aiSummary?: Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
   recordingUrl?: Prisma.SortOrder
@@ -458,6 +495,7 @@ export type NoteMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
   content?: Prisma.SortOrder
+  aiSummary?: Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
   recordingUrl?: Prisma.SortOrder
@@ -529,6 +567,8 @@ export type NoteCreateWithoutAuthorInput = {
   id?: string
   title: string
   content?: string | null
+  aiSummary?: string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: number
   isPublic?: boolean
   recordingUrl?: string | null
@@ -541,6 +581,8 @@ export type NoteUncheckedCreateWithoutAuthorInput = {
   id?: string
   title: string
   content?: string | null
+  aiSummary?: string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: number
   isPublic?: boolean
   recordingUrl?: string | null
@@ -582,6 +624,8 @@ export type NoteScalarWhereInput = {
   id?: Prisma.StringFilter<"Note"> | string
   title?: Prisma.StringFilter<"Note"> | string
   content?: Prisma.StringNullableFilter<"Note"> | string | null
+  aiSummary?: Prisma.StringNullableFilter<"Note"> | string | null
+  speakers?: Prisma.JsonNullableFilter<"Note">
   durationInSeconds?: Prisma.IntFilter<"Note"> | number
   isPublic?: Prisma.BoolFilter<"Note"> | boolean
   recordingUrl?: Prisma.StringNullableFilter<"Note"> | string | null
@@ -595,6 +639,8 @@ export type NoteCreateManyAuthorInput = {
   id?: string
   title: string
   content?: string | null
+  aiSummary?: string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: number
   isPublic?: boolean
   recordingUrl?: string | null
@@ -607,6 +653,8 @@ export type NoteUpdateWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -619,6 +667,8 @@ export type NoteUncheckedUpdateWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -631,6 +681,8 @@ export type NoteUncheckedUpdateManyWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiSummary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  speakers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -645,6 +697,8 @@ export type NoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   id?: boolean
   title?: boolean
   content?: boolean
+  aiSummary?: boolean
+  speakers?: boolean
   durationInSeconds?: boolean
   isPublic?: boolean
   recordingUrl?: boolean
@@ -659,6 +713,8 @@ export type NoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   title?: boolean
   content?: boolean
+  aiSummary?: boolean
+  speakers?: boolean
   durationInSeconds?: boolean
   isPublic?: boolean
   recordingUrl?: boolean
@@ -673,6 +729,8 @@ export type NoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   title?: boolean
   content?: boolean
+  aiSummary?: boolean
+  speakers?: boolean
   durationInSeconds?: boolean
   isPublic?: boolean
   recordingUrl?: boolean
@@ -687,6 +745,8 @@ export type NoteSelectScalar = {
   id?: boolean
   title?: boolean
   content?: boolean
+  aiSummary?: boolean
+  speakers?: boolean
   durationInSeconds?: boolean
   isPublic?: boolean
   recordingUrl?: boolean
@@ -696,7 +756,7 @@ export type NoteSelectScalar = {
   authorId?: boolean
 }
 
-export type NoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "content" | "durationInSeconds" | "isPublic" | "recordingUrl" | "recordingStatus" | "createdAt" | "updatedAt" | "authorId", ExtArgs["result"]["note"]>
+export type NoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "content" | "aiSummary" | "speakers" | "durationInSeconds" | "isPublic" | "recordingUrl" | "recordingStatus" | "createdAt" | "updatedAt" | "authorId", ExtArgs["result"]["note"]>
 export type NoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -716,6 +776,8 @@ export type $NotePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: string
     title: string
     content: string | null
+    aiSummary: string | null
+    speakers: runtime.JsonValue | null
     durationInSeconds: number
     isPublic: boolean
     recordingUrl: string | null
@@ -1150,6 +1212,8 @@ export interface NoteFieldRefs {
   readonly id: Prisma.FieldRef<"Note", 'String'>
   readonly title: Prisma.FieldRef<"Note", 'String'>
   readonly content: Prisma.FieldRef<"Note", 'String'>
+  readonly aiSummary: Prisma.FieldRef<"Note", 'String'>
+  readonly speakers: Prisma.FieldRef<"Note", 'Json'>
   readonly durationInSeconds: Prisma.FieldRef<"Note", 'Int'>
   readonly isPublic: Prisma.FieldRef<"Note", 'Boolean'>
   readonly recordingUrl: Prisma.FieldRef<"Note", 'String'>

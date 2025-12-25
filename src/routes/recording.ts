@@ -1,10 +1,11 @@
 import {Hono} from "hono";
-import {AudioFormat, CommitStrategy, ElevenLabsClient, RealtimeEvents,} from "@elevenlabs/elevenlabs-js";
+import {AudioFormat, ElevenLabsClient, RealtimeEvents} from "@elevenlabs/elevenlabs-js";
 import {AzureOpenAI} from "openai";
 import prisma from "../db";
 import {authMiddleware} from "../middleware/auth";
 import {uploadAudioToR2} from "../lib/r2";
 import {verifyToken} from "../utils/jwt";
+import {CommitStrategy} from "@elevenlabs/client";
 
 type Variables = {
   userId: string;
@@ -35,6 +36,26 @@ const CORRECTION_PROMPT = `너는 "실시간 텍스트 정규화 편집기"다.
 
 출력: 교정된 텍스트만. 설명/주석/요약 금지.`;
 
+const SUMMARY_PROMPT = `너는 "텍스트 요약 전문가"다.
+
+규칙:
+1) 주어진 텍스트의 핵심 내용을 최대 4문장으로 요약한다.
+2) 각 문장은 간결하고 명확하게 작성하되, 과도하게 길게 늘리지 않는다.
+3) 중요한 키워드와 맥락을 유지한다.
+4) 요약문만 출력한다. 추가 설명이나 주석 금지.
+
+출력: 요약된 텍스트만 (최대 4문장).`;
+
+const TITLE_PROMPT = `너는 "제목 생성 전문가"다.
+
+규칙:
+1) 주어진 텍스트의 핵심 주제를 파악하여 간결한 제목을 생성한다.
+2) 제목은 최대 50자 이내로 작성한다.
+3) 구체적이고 명확하게 작성하되, 지나치게 길지 않게 한다.
+4) 제목만 출력한다. 추가 설명이나 주석 금지.
+
+출력: 제목만.`;
+
 async function normalizeTextWithGpt(text: string): Promise<string> {
   try {
     console.log(`🤖 [GPT] Normalizing text: ${text.substring(0, 50)}...`);
@@ -57,13 +78,57 @@ async function normalizeTextWithGpt(text: string): Promise<string> {
   }
 }
 
+async function summarizeTextWithGpt(text: string): Promise<string> {
+  try {
+    console.log(`🤖 [GPT] Summarizing text: ${text.substring(0, 50)}...`);
+    const response = await azureClient.chat.completions.create({
+      messages: [
+        { role: "system", content: SUMMARY_PROMPT },
+        { role: "user", content: text },
+      ],
+      max_completion_tokens: 300,
+      temperature: 0.5,
+      top_p: 1.0,
+      model: AZURE_DEPLOYMENT,
+    });
+    const summary = response.choices[0]?.message?.content?.trim() ?? '';
+    console.log(`✅ [GPT] Summary: ${summary}`);
+    return summary;
+  } catch (e) {
+    console.error("❌ [GPT] Summary Error:", e);
+    return '';
+  }
+}
+
+async function generateTitleWithGpt(text: string): Promise<string> {
+  try {
+    console.log(`🤖 [GPT] Generating title: ${text.substring(0, 50)}...`);
+    const response = await azureClient.chat.completions.create({
+      messages: [
+        { role: "system", content: TITLE_PROMPT },
+        { role: "user", content: text },
+      ],
+      max_completion_tokens: 100,
+      temperature: 0.5,
+      top_p: 1.0,
+      model: AZURE_DEPLOYMENT,
+    });
+    const title = response.choices[0]?.message?.content?.trim() ?? '';
+    console.log(`✅ [GPT] Title: ${title}`);
+    return title;
+  } catch (e) {
+    console.error("❌ [GPT] Title Error:", e);
+    return '';
+  }
+}
+
 interface RecordingSession {
   sessionId: string;
   noteId: string;
   userId: string;
   audioChunks: Buffer[];
   startTime: number;
-  sttConnection: any;
+  sttConnection: any; // ElevenLabs realtime STT connection
   transcriptText: string;
 }
 
@@ -135,8 +200,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
     }
 
     const session = activeSessions.get(sessionId);
-    
-    // DB에서 Note 확인
+
     const note = await prisma.note.findUnique({
       where: { id: sessionId },
     });
@@ -150,10 +214,11 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
     }
 
     try {
+      if (session && session.sttConnection) {
+        session.sttConnection.close();
+      }
+      
       if (session) {
-        if (session.sttConnection) {
-          session.sttConnection.close();
-        }
         activeSessions.delete(sessionId);
         console.log(`🗑️ [${sessionId}] Session cancelled and removed`);
       }
@@ -216,7 +281,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
           const userId = payload.userId;
           console.log(`✅ [${sessionId}] Authenticated user: ${userId}`);
 
-          let session = activeSessions.get(sessionId);
+          let session: RecordingSession | undefined = activeSessions.get(sessionId);
 
           if (!session) {
             const note = await prisma.note.findUnique({
@@ -270,7 +335,9 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
               transcriptText: "",
             };
 
-            activeSessions.set(sessionId, session);
+              if (session) {
+                  activeSessions.set(sessionId, <RecordingSession>session);
+              }
 
             console.log(`📡 [${sessionId}] Setting up STT event listeners...`);
             
@@ -428,37 +495,157 @@ async function finalizeRecording(sessionId: string) {
   console.log(`🛑 [${sessionId}] Finalizing recording...`);
 
   try {
-    if (session.sttConnection) {
-      session.sttConnection.close();
-    }
-
+    // 1. WAV 파일 생성
     const totalAudioBuffer = Buffer.concat(session.audioChunks);
     const durationInSeconds = Math.floor(
       (Date.now() - session.startTime) / 1000
     );
 
     const wavBuffer = createWavBuffer(totalAudioBuffer, SAMPLE_RATE);
+    console.log(`📁 [${sessionId}] WAV file created: ${wavBuffer.length} bytes`);
 
+    // 2. R2에 업로드
     const r2Key = `recordings/${session.noteId}.wav`;
     const recordingUrl = await uploadAudioToR2(r2Key, wavBuffer, "audio/wav");
+    console.log(`✅ [${sessionId}] Uploaded to R2: ${recordingUrl}`);
+
+    // 3. ElevenLabs Speech-to-Text API 호출 (화자 구분 포함)
+    console.log(`🎙️ [${sessionId}] Calling ElevenLabs STT API...`);
+    
+    const formData = new FormData();
+    // formData.append('audio', new Blob([wavBuffer], { type: 'audio/wav' }), 'recording.wav');
+      formData.append("cloud_storage_url", recordingUrl);
+    formData.append('model_id', 'scribe_v2');
+    formData.append('language_code', 'ko');
+    formData.append('diarize', 'true');
+
+    const sttResponse = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
+      method: 'POST',
+      headers: {
+        'xi-api-key': ELEVENLABS_API_KEY!,
+      },
+      body: formData,
+    });
+
+    if (!sttResponse.ok) {
+      const errorText = await sttResponse.text();
+      throw new Error(`ElevenLabs STT API error: ${errorText}`);
+    }
+
+    const sttResult = await sttResponse.json();
+    console.log(`✅ [${sessionId}] STT completed`);
+    console.log(`   Text: ${sttResult.text?.substring(0, 100)}...`);
+    console.log(`   Words: ${sttResult.words?.length || 0}`);
+
+    // 4. GPT로 전체 텍스트 교정
+    let formattedText = sttResult.text || '';
+    if (formattedText.trim()) {
+      console.log(`🤖 [${sessionId}] Formatting with GPT...`);
+      try {
+        formattedText = await normalizeTextWithGpt(formattedText);
+        console.log(`✅ [${sessionId}] GPT formatting complete`);
+      } catch (e) {
+        console.error(`⚠️ [${sessionId}] GPT formatting failed, using original:`, e);
+      }
+    }
+
+    // 5. GPT로 요약 생성
+    let aiSummary = '';
+    if (formattedText.trim()) {
+      console.log(`🤖 [${sessionId}] Generating summary with GPT...`);
+      try {
+        aiSummary = await summarizeTextWithGpt(formattedText);
+        console.log(`✅ [${sessionId}] GPT summary complete`);
+      } catch (e) {
+        console.error(`⚠️ [${sessionId}] GPT summary failed:`, e);
+      }
+    }
+
+    // 6. GPT로 제목 생성
+    let generatedTitle = '';
+    if (formattedText.trim()) {
+      console.log(`🤖 [${sessionId}] Generating title with GPT...`);
+      try {
+        generatedTitle = await generateTitleWithGpt(formattedText);
+        console.log(`✅ [${sessionId}] GPT title complete`);
+      } catch (e) {
+        console.error(`⚠️ [${sessionId}] GPT title generation failed:`, e);
+      }
+    }
+
+    const contentJson = {
+      language_code: sttResult.language_code || 'ko',
+      language_probability: sttResult.language_probability || 0.0,
+      text: sttResult.text || '',
+      formatted_text: formattedText,
+      words: sttResult.words || [],
+      duration_seconds: durationInSeconds,
+      sample_rate: SAMPLE_RATE,
+      transcribed_at: new Date().toISOString(),
+    };
+
+    // 7. 화자 정보 추출 및 기본 이름 설정
+    const speakerIds = new Set<string>();
+    if (sttResult.words) {
+      sttResult.words.forEach((word: any) => {
+        if (word.speaker_id) {
+          speakerIds.add(word.speaker_id);
+        }
+      });
+    }
+
+    const speakers = Array.from(speakerIds)
+      .sort()
+      .map((speaker_id, index) => ({
+        speaker_id,
+        speaker_name: `참석자 ${index + 1}`,
+      }));
+
+    console.log(`👥 [${sessionId}] Detected ${speakers.length} speakers`);
 
     await prisma.note.update({
       where: { id: session.noteId },
       data: {
+        title: generatedTitle || undefined,
         recordingUrl,
         durationInSeconds,
         recordingStatus: "completed",
-        content: session.transcriptText.trim(),
+        content: JSON.stringify(contentJson, null, 2),
+        aiSummary: aiSummary || null,
+        speakers: speakers.length > 0 ? JSON.parse(JSON.stringify(speakers)) : null,
       },
     });
 
-    console.log(`✅ [${sessionId}] Recording uploaded to R2: ${recordingUrl}`);
+    console.log(`✅ [${sessionId}] Recording finalized and saved to DB`);
+
+    const speakerSummary: Record<string, { text: string; wordCount: number }> = {};
+    if (sttResult.words) {
+      sttResult.words.forEach((word: any) => {
+        const speakerId = word.speaker_id || 'unknown';
+        if (!speakerSummary[speakerId]) {
+          speakerSummary[speakerId] = { text: '', wordCount: 0 };
+        }
+        speakerSummary[speakerId].text += word.text + ' ';
+        speakerSummary[speakerId].wordCount++;
+      });
+    }
 
     const result = {
-      message: "Recording completed and uploaded successfully",
+      message: "Recording completed and transcribed successfully",
       recordingUrl,
       durationInSeconds,
-      transcriptText: session.transcriptText.trim(),
+      transcript: {
+        text: sttResult.text || '',
+        formatted: formattedText,
+        language: sttResult.language_code || 'ko',
+        language_probability: sttResult.language_probability || 0.0,
+        word_count: sttResult.words?.length || 0,
+      },
+      speakers: Object.entries(speakerSummary).map(([speakerId, data]) => ({
+        speaker_id: speakerId,
+        text: data.text.trim(),
+        word_count: data.wordCount,
+      })),
     };
 
     activeSessions.delete(sessionId);
