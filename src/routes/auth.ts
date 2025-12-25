@@ -11,7 +11,10 @@ authRouter.post('/google', async (c) => {
   try {
     const { idToken } = await c.req.json<{ idToken: string }>()
 
+    console.log('🔐 [AUTH] Google OAuth request received')
+
     if (!idToken) {
+      console.log('❌ [AUTH] Missing idToken')
       return c.json({ error: 'idToken is required' }, 400)
     }
 
@@ -20,15 +23,21 @@ authRouter.post('/google', async (c) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     })
 
+      console.log(ticket.getPayload(), ticket.getUserId())
+
     const payload = ticket.getPayload()
     
     if (!payload) {
+      console.log('❌ [AUTH] Invalid Google token')
       return c.json({ error: 'Invalid token' }, 401)
     }
 
     const { sub: googleId, email, name, picture } = payload
 
+    console.log(`✅ [AUTH] Google token verified for: ${email}`)
+
     if (!email) {
+      console.log('❌ [AUTH] Email not provided')
       return c.json({ error: 'Email not provided by Google' }, 400)
     }
 
@@ -37,6 +46,7 @@ authRouter.post('/google', async (c) => {
     })
 
     if (!user) {
+      console.log(`📝 [AUTH] Creating/updating user: ${email}`)
       user = await prisma.user.upsert({
         where: { email },
         create: {
@@ -55,6 +65,8 @@ authRouter.post('/google', async (c) => {
 
     const accessToken = generateToken(user.id)
 
+    console.log(`✅ [AUTH] Login successful for user: ${user.id}`)
+
     return c.json({
       accessToken,
       user: {
@@ -65,7 +77,7 @@ authRouter.post('/google', async (c) => {
       },
     })
   } catch (error) {
-    console.error('Google OAuth error:', error)
+    console.error('❌ [AUTH] Google OAuth error:', error)
     return c.json({ error: 'Authentication failed' }, 500)
   }
 })

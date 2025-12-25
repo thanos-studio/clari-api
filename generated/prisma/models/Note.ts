@@ -37,8 +37,11 @@ export type NoteSumAggregateOutputType = {
 export type NoteMinAggregateOutputType = {
   id: string | null
   title: string | null
+  content: string | null
   durationInSeconds: number | null
   isPublic: boolean | null
+  recordingUrl: string | null
+  recordingStatus: string | null
   createdAt: Date | null
   updatedAt: Date | null
   authorId: string | null
@@ -47,8 +50,11 @@ export type NoteMinAggregateOutputType = {
 export type NoteMaxAggregateOutputType = {
   id: string | null
   title: string | null
+  content: string | null
   durationInSeconds: number | null
   isPublic: boolean | null
+  recordingUrl: string | null
+  recordingStatus: string | null
   createdAt: Date | null
   updatedAt: Date | null
   authorId: string | null
@@ -57,8 +63,11 @@ export type NoteMaxAggregateOutputType = {
 export type NoteCountAggregateOutputType = {
   id: number
   title: number
+  content: number
   durationInSeconds: number
   isPublic: number
+  recordingUrl: number
+  recordingStatus: number
   createdAt: number
   updatedAt: number
   authorId: number
@@ -77,8 +86,11 @@ export type NoteSumAggregateInputType = {
 export type NoteMinAggregateInputType = {
   id?: true
   title?: true
+  content?: true
   durationInSeconds?: true
   isPublic?: true
+  recordingUrl?: true
+  recordingStatus?: true
   createdAt?: true
   updatedAt?: true
   authorId?: true
@@ -87,8 +99,11 @@ export type NoteMinAggregateInputType = {
 export type NoteMaxAggregateInputType = {
   id?: true
   title?: true
+  content?: true
   durationInSeconds?: true
   isPublic?: true
+  recordingUrl?: true
+  recordingStatus?: true
   createdAt?: true
   updatedAt?: true
   authorId?: true
@@ -97,8 +112,11 @@ export type NoteMaxAggregateInputType = {
 export type NoteCountAggregateInputType = {
   id?: true
   title?: true
+  content?: true
   durationInSeconds?: true
   isPublic?: true
+  recordingUrl?: true
+  recordingStatus?: true
   createdAt?: true
   updatedAt?: true
   authorId?: true
@@ -194,8 +212,11 @@ export type NoteGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type NoteGroupByOutputType = {
   id: string
   title: string
+  content: string | null
   durationInSeconds: number
   isPublic: boolean
+  recordingUrl: string | null
+  recordingStatus: string
   createdAt: Date
   updatedAt: Date
   authorId: string
@@ -227,8 +248,11 @@ export type NoteWhereInput = {
   NOT?: Prisma.NoteWhereInput | Prisma.NoteWhereInput[]
   id?: Prisma.StringFilter<"Note"> | string
   title?: Prisma.StringFilter<"Note"> | string
+  content?: Prisma.StringNullableFilter<"Note"> | string | null
   durationInSeconds?: Prisma.IntFilter<"Note"> | number
   isPublic?: Prisma.BoolFilter<"Note"> | boolean
+  recordingUrl?: Prisma.StringNullableFilter<"Note"> | string | null
+  recordingStatus?: Prisma.StringFilter<"Note"> | string
   createdAt?: Prisma.DateTimeFilter<"Note"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Note"> | Date | string
   authorId?: Prisma.StringFilter<"Note"> | string
@@ -238,8 +262,11 @@ export type NoteWhereInput = {
 export type NoteOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  content?: Prisma.SortOrderInput | Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  recordingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
@@ -252,8 +279,11 @@ export type NoteWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.NoteWhereInput[]
   NOT?: Prisma.NoteWhereInput | Prisma.NoteWhereInput[]
   title?: Prisma.StringFilter<"Note"> | string
+  content?: Prisma.StringNullableFilter<"Note"> | string | null
   durationInSeconds?: Prisma.IntFilter<"Note"> | number
   isPublic?: Prisma.BoolFilter<"Note"> | boolean
+  recordingUrl?: Prisma.StringNullableFilter<"Note"> | string | null
+  recordingStatus?: Prisma.StringFilter<"Note"> | string
   createdAt?: Prisma.DateTimeFilter<"Note"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Note"> | Date | string
   authorId?: Prisma.StringFilter<"Note"> | string
@@ -263,8 +293,11 @@ export type NoteWhereUniqueInput = Prisma.AtLeast<{
 export type NoteOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  content?: Prisma.SortOrderInput | Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  recordingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
@@ -281,8 +314,11 @@ export type NoteScalarWhereWithAggregatesInput = {
   NOT?: Prisma.NoteScalarWhereWithAggregatesInput | Prisma.NoteScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Note"> | string
   title?: Prisma.StringWithAggregatesFilter<"Note"> | string
+  content?: Prisma.StringNullableWithAggregatesFilter<"Note"> | string | null
   durationInSeconds?: Prisma.IntWithAggregatesFilter<"Note"> | number
   isPublic?: Prisma.BoolWithAggregatesFilter<"Note"> | boolean
+  recordingUrl?: Prisma.StringNullableWithAggregatesFilter<"Note"> | string | null
+  recordingStatus?: Prisma.StringWithAggregatesFilter<"Note"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Note"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Note"> | Date | string
   authorId?: Prisma.StringWithAggregatesFilter<"Note"> | string
@@ -291,8 +327,11 @@ export type NoteScalarWhereWithAggregatesInput = {
 export type NoteCreateInput = {
   id?: string
   title: string
-  durationInSeconds: number
+  content?: string | null
+  durationInSeconds?: number
   isPublic?: boolean
+  recordingUrl?: string | null
+  recordingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   author: Prisma.UserCreateNestedOneWithoutNoteInput
@@ -301,8 +340,11 @@ export type NoteCreateInput = {
 export type NoteUncheckedCreateInput = {
   id?: string
   title: string
-  durationInSeconds: number
+  content?: string | null
+  durationInSeconds?: number
   isPublic?: boolean
+  recordingUrl?: string | null
+  recordingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   authorId: string
@@ -311,8 +353,11 @@ export type NoteUncheckedCreateInput = {
 export type NoteUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneRequiredWithoutNoteNestedInput
@@ -321,8 +366,11 @@ export type NoteUpdateInput = {
 export type NoteUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authorId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -331,8 +379,11 @@ export type NoteUncheckedUpdateInput = {
 export type NoteCreateManyInput = {
   id?: string
   title: string
-  durationInSeconds: number
+  content?: string | null
+  durationInSeconds?: number
   isPublic?: boolean
+  recordingUrl?: string | null
+  recordingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   authorId: string
@@ -341,8 +392,11 @@ export type NoteCreateManyInput = {
 export type NoteUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -350,8 +404,11 @@ export type NoteUpdateManyMutationInput = {
 export type NoteUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authorId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -370,8 +427,11 @@ export type NoteOrderByRelationAggregateInput = {
 export type NoteCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  content?: Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrder
+  recordingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
@@ -384,8 +444,11 @@ export type NoteAvgOrderByAggregateInput = {
 export type NoteMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  content?: Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrder
+  recordingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
@@ -394,8 +457,11 @@ export type NoteMaxOrderByAggregateInput = {
 export type NoteMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  content?: Prisma.SortOrder
   durationInSeconds?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  recordingUrl?: Prisma.SortOrder
+  recordingStatus?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
@@ -462,8 +528,11 @@ export type BoolFieldUpdateOperationsInput = {
 export type NoteCreateWithoutAuthorInput = {
   id?: string
   title: string
-  durationInSeconds: number
+  content?: string | null
+  durationInSeconds?: number
   isPublic?: boolean
+  recordingUrl?: string | null
+  recordingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -471,8 +540,11 @@ export type NoteCreateWithoutAuthorInput = {
 export type NoteUncheckedCreateWithoutAuthorInput = {
   id?: string
   title: string
-  durationInSeconds: number
+  content?: string | null
+  durationInSeconds?: number
   isPublic?: boolean
+  recordingUrl?: string | null
+  recordingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -509,8 +581,11 @@ export type NoteScalarWhereInput = {
   NOT?: Prisma.NoteScalarWhereInput | Prisma.NoteScalarWhereInput[]
   id?: Prisma.StringFilter<"Note"> | string
   title?: Prisma.StringFilter<"Note"> | string
+  content?: Prisma.StringNullableFilter<"Note"> | string | null
   durationInSeconds?: Prisma.IntFilter<"Note"> | number
   isPublic?: Prisma.BoolFilter<"Note"> | boolean
+  recordingUrl?: Prisma.StringNullableFilter<"Note"> | string | null
+  recordingStatus?: Prisma.StringFilter<"Note"> | string
   createdAt?: Prisma.DateTimeFilter<"Note"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Note"> | Date | string
   authorId?: Prisma.StringFilter<"Note"> | string
@@ -519,8 +594,11 @@ export type NoteScalarWhereInput = {
 export type NoteCreateManyAuthorInput = {
   id?: string
   title: string
-  durationInSeconds: number
+  content?: string | null
+  durationInSeconds?: number
   isPublic?: boolean
+  recordingUrl?: string | null
+  recordingStatus?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -528,8 +606,11 @@ export type NoteCreateManyAuthorInput = {
 export type NoteUpdateWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -537,8 +618,11 @@ export type NoteUpdateWithoutAuthorInput = {
 export type NoteUncheckedUpdateWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -546,8 +630,11 @@ export type NoteUncheckedUpdateWithoutAuthorInput = {
 export type NoteUncheckedUpdateManyWithoutAuthorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationInSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recordingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordingStatus?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -557,8 +644,11 @@ export type NoteUncheckedUpdateManyWithoutAuthorInput = {
 export type NoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   title?: boolean
+  content?: boolean
   durationInSeconds?: boolean
   isPublic?: boolean
+  recordingUrl?: boolean
+  recordingStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   authorId?: boolean
@@ -568,8 +658,11 @@ export type NoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type NoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   title?: boolean
+  content?: boolean
   durationInSeconds?: boolean
   isPublic?: boolean
+  recordingUrl?: boolean
+  recordingStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   authorId?: boolean
@@ -579,8 +672,11 @@ export type NoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type NoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   title?: boolean
+  content?: boolean
   durationInSeconds?: boolean
   isPublic?: boolean
+  recordingUrl?: boolean
+  recordingStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   authorId?: boolean
@@ -590,14 +686,17 @@ export type NoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type NoteSelectScalar = {
   id?: boolean
   title?: boolean
+  content?: boolean
   durationInSeconds?: boolean
   isPublic?: boolean
+  recordingUrl?: boolean
+  recordingStatus?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   authorId?: boolean
 }
 
-export type NoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "durationInSeconds" | "isPublic" | "createdAt" | "updatedAt" | "authorId", ExtArgs["result"]["note"]>
+export type NoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "content" | "durationInSeconds" | "isPublic" | "recordingUrl" | "recordingStatus" | "createdAt" | "updatedAt" | "authorId", ExtArgs["result"]["note"]>
 export type NoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -616,8 +715,11 @@ export type $NotePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     title: string
+    content: string | null
     durationInSeconds: number
     isPublic: boolean
+    recordingUrl: string | null
+    recordingStatus: string
     createdAt: Date
     updatedAt: Date
     authorId: string
@@ -1047,8 +1149,11 @@ export interface Prisma__NoteClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface NoteFieldRefs {
   readonly id: Prisma.FieldRef<"Note", 'String'>
   readonly title: Prisma.FieldRef<"Note", 'String'>
+  readonly content: Prisma.FieldRef<"Note", 'String'>
   readonly durationInSeconds: Prisma.FieldRef<"Note", 'Int'>
   readonly isPublic: Prisma.FieldRef<"Note", 'Boolean'>
+  readonly recordingUrl: Prisma.FieldRef<"Note", 'String'>
+  readonly recordingStatus: Prisma.FieldRef<"Note", 'String'>
   readonly createdAt: Prisma.FieldRef<"Note", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Note", 'DateTime'>
   readonly authorId: Prisma.FieldRef<"Note", 'String'>

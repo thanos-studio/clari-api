@@ -3,3 +3,7 @@ node_modules/
 dist/
 /src/generated/prisma
 .env
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

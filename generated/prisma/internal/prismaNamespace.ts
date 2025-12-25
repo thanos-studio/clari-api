@@ -683,8 +683,11 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const NoteScalarFieldEnum = {
   id: 'id',
   title: 'title',
+  content: 'content',
   durationInSeconds: 'durationInSeconds',
   isPublic: 'isPublic',
+  recordingUrl: 'recordingUrl',
+  recordingStatus: 'recordingStatus',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   authorId: 'authorId'
