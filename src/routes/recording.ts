@@ -133,6 +133,8 @@ interface RecordingSession {
   languageCode: string;
   keywordPack?: { name: string; description: string }[];
   keywordDetectionEnabled: boolean;
+  externalResources?: Array<{ id: string; title: string; displayUrl: string; scrapedContent: string }>;
+  resourceHintsEnabled: boolean;
 }
 
 export const activeSessions = new Map<string, RecordingSession>();
@@ -143,14 +145,15 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
   // POST /session - 새 녹음 세션 생성
   recordingRouter.post("/session", authMiddleware, async (c) => {
     const userId = c.get("userId");
-    const { title, languageCode, keywordPackId } = await c.req.json();
+    const { title, languageCode, keywordPackIds, externalResourceIds } = await c.req.json();
 
     const language = languageCode || "ko";
 
     console.log(`📝 [SESSION] Creating session for user: ${userId}`);
     console.log(`📝 [SESSION] Title: ${title}`);
     console.log(`📝 [SESSION] Language: ${language}`);
-    console.log(`📝 [SESSION] KeywordPack ID: ${keywordPackId}`);
+    console.log(`📝 [SESSION] KeywordPack IDs: ${keywordPackIds}`);
+    console.log(`📝 [SESSION] ExternalResource IDs: ${externalResourceIds}`);
 
     const note = await prisma.note.create({
       data: {
@@ -159,7 +162,8 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
         recordingStatus: "recording",
         durationInSeconds: 0,
         content: JSON.stringify({ languageCode: language }),
-        keywordPackId: keywordPackId || null,
+        keywordPackIds: keywordPackIds || [],
+        externalResourceIds: externalResourceIds || [],
       },
     });
 
@@ -313,18 +317,48 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
 
             console.log(`✅ [${sessionId}] Access granted for user ${userId}`);
 
-            // Load KeywordPack if attached to the note
+            // Load KeywordPacks if attached to the note
             let keywordPackData: { name: string; description: string }[] = [];
-            if (note.keywordPackId) {
-              console.log(`📚 [${sessionId}] Loading KeywordPack: ${note.keywordPackId}`);
-              const keywordPack = await prisma.keywordPack.findUnique({
-                where: { id: note.keywordPackId },
+            if (note.keywordPackIds && Array.isArray(note.keywordPackIds) && note.keywordPackIds.length > 0) {
+              console.log(`📚 [${sessionId}] Loading ${note.keywordPackIds.length} KeywordPacks`);
+              
+              const keywordPacks = await prisma.keywordPack.findMany({
+                where: { id: { in: note.keywordPackIds } },
               });
               
-              if (keywordPack && Array.isArray(keywordPack.keywords)) {
-                keywordPackData = keywordPack.keywords as { name: string; description: string }[];
-                console.log(`✅ [${sessionId}] Loaded ${keywordPackData.length} keywords`);
-              }
+              keywordPacks.forEach(pack => {
+                if (Array.isArray(pack.keywords)) {
+                  const keywords = pack.keywords as { name: string; description: string }[];
+                  keywordPackData.push(...keywords);
+                }
+              });
+              
+              console.log(`✅ [${sessionId}] Loaded ${keywordPackData.length} total keywords from ${keywordPacks.length} packs`);
+            }
+
+            // Load ExternalResources if attached to the note
+            let externalResourcesData: Array<{ id: string; title: string; displayUrl: string; scrapedContent: string }> = [];
+            if (note.externalResourceIds && Array.isArray(note.externalResourceIds) && note.externalResourceIds.length > 0) {
+              console.log(`📚 [${sessionId}] Loading ${note.externalResourceIds.length} ExternalResources`);
+              
+              const resources = await prisma.externalResource.findMany({
+                where: { id: { in: note.externalResourceIds } },
+                select: {
+                  id: true,
+                  title: true,
+                  displayUrl: true,
+                  scrapedContent: true,
+                },
+              });
+              
+              externalResourcesData = resources.map(r => ({
+                id: r.id,
+                title: r.title,
+                displayUrl: r.displayUrl,
+                scrapedContent: r.scrapedContent || '',
+              }));
+              
+              console.log(`✅ [${sessionId}] Loaded ${externalResourcesData.length} external resources`);
             }
 
             // Note의 content에서 languageCode 추출
@@ -368,6 +402,8 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
               languageCode: languageCode,
               keywordPack: keywordPackData,
               keywordDetectionEnabled: keywordPackData.length > 0,
+              externalResources: externalResourcesData,
+              resourceHintsEnabled: externalResourcesData.length > 0,
             };
 
               if (session) {
@@ -421,6 +457,52 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
                       ws.send(JSON.stringify({ 
                         type: "keywords", 
                         keywords: detectedKeywords 
+                      }));
+                    }
+                  }
+
+                  // Check for hints from external resources
+                  if (session!.resourceHintsEnabled && session!.externalResources && session!.externalResources.length > 0) {
+                    const hints: Array<{ resourceId: string; resourceTitle: string; hint: string; sourceUrl: string }> = [];
+                    
+                    for (const resource of session!.externalResources) {
+                      // Search for relevant content in scraped data
+                      const textLower = text.toLowerCase();
+                      const contentLines = resource.scrapedContent.split('\n').filter(line => line.trim());
+                      
+                      // Find lines that might be relevant (simple keyword matching)
+                      const words = textLower.split(/\s+/).filter(w => w.length > 2);
+                      
+                      for (const line of contentLines) {
+                        const lineLower = line.toLowerCase();
+                        let matchCount = 0;
+                        
+                        for (const word of words) {
+                          if (lineLower.includes(word)) {
+                            matchCount++;
+                          }
+                        }
+                        
+                        // If multiple words match, consider it a hint
+                        if (matchCount >= 2 && line.length > 20 && line.length < 200) {
+                          hints.push({
+                            resourceId: resource.id,
+                            resourceTitle: resource.title,
+                            hint: line.trim(),
+                            sourceUrl: resource.displayUrl,
+                          });
+                          
+                          console.log(`💡 [${sessionId}] Hint found from "${resource.title}"`);
+                          break; // Only one hint per resource per transcript
+                        }
+                      }
+                    }
+
+                    // Send hints to client
+                    if (hints.length > 0) {
+                      ws.send(JSON.stringify({ 
+                        type: "hints", 
+                        hints 
                       }));
                     }
                   }
@@ -485,6 +567,20 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
                 session.keywordDetectionEnabled = true;
                 console.log(`🔔 [${sessionId}] Keyword detection enabled`);
                 ws.send(JSON.stringify({ type: "keyword.status", enabled: true }));
+              }
+              return;
+            }
+
+            // Handle resource hints control
+            if (data.action === "hints.control") {
+              if (data.data === "off") {
+                session.resourceHintsEnabled = false;
+                console.log(`🔕 [${sessionId}] Resource hints disabled`);
+                ws.send(JSON.stringify({ type: "hints.status", enabled: false }));
+              } else if (data.data === "on") {
+                session.resourceHintsEnabled = true;
+                console.log(`🔔 [${sessionId}] Resource hints enabled`);
+                ws.send(JSON.stringify({ type: "hints.status", enabled: true }));
               }
               return;
             }
