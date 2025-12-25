@@ -130,6 +130,7 @@ interface RecordingSession {
   startTime: number;
   sttConnection: any; // ElevenLabs realtime STT connection
   transcriptText: string;
+  languageCode: string;
 }
 
 export const activeSessions = new Map<string, RecordingSession>();
@@ -140,10 +141,13 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
   // POST /session - 새 녹음 세션 생성
   recordingRouter.post("/session", authMiddleware, async (c) => {
     const userId = c.get("userId");
-    const { title } = await c.req.json();
+    const { title, languageCode } = await c.req.json();
+
+    const language = languageCode || "ko";
 
     console.log(`📝 [SESSION] Creating session for user: ${userId}`);
     console.log(`📝 [SESSION] Title: ${title}`);
+    console.log(`📝 [SESSION] Language: ${language}`);
 
     const note = await prisma.note.create({
       data: {
@@ -151,6 +155,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
         authorId: userId,
         recordingStatus: "recording",
         durationInSeconds: 0,
+        content: JSON.stringify({ languageCode: language }),
       },
     });
 
@@ -304,15 +309,24 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
 
             console.log(`✅ [${sessionId}] Access granted for user ${userId}`);
 
+            // Note의 content에서 languageCode 추출
+            let languageCode = "ko";
+            try {
+              const contentData = note.content ? JSON.parse(note.content) : {};
+              languageCode = contentData.languageCode || "ko";
+            } catch (e) {
+              console.warn(`⚠️ [${sessionId}] Failed to parse content, using default language: ko`);
+            }
+
             console.log(`🎙️ [${sessionId}] Connecting to ElevenLabs STT...`);
             console.log(`   Model: scribe_v2_realtime`);
-            console.log(`   Language: ko`);
+            console.log(`   Language: ${languageCode}`);
             console.log(`   Sample Rate: ${SAMPLE_RATE}`);
             
             const sttConnection =
               await elevenlabsClient.speechToText.realtime.connect({
                 modelId: "scribe_v2_realtime",
-                languageCode: "ko",
+                languageCode: languageCode,
                 sampleRate: SAMPLE_RATE,
                 audioFormat: AudioFormat.PCM_16000,
                 commitStrategy: CommitStrategy.VAD,
@@ -333,6 +347,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
               startTime: Date.now(),
               sttConnection,
               transcriptText: "",
+              languageCode: languageCode,
             };
 
               if (session) {
@@ -512,11 +527,13 @@ async function finalizeRecording(sessionId: string) {
     // 3. ElevenLabs Speech-to-Text API 호출 (화자 구분 포함)
     console.log(`🎙️ [${sessionId}] Calling ElevenLabs STT API...`);
     
+    const languageCode = session.languageCode || 'ko';
+    
     const formData = new FormData();
     // formData.append('audio', new Blob([wavBuffer], { type: 'audio/wav' }), 'recording.wav');
       formData.append("cloud_storage_url", recordingUrl);
     formData.append('model_id', 'scribe_v2');
-    formData.append('language_code', 'ko');
+    formData.append('language_code', languageCode);
     formData.append('diarize', 'true');
 
     const sttResponse = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
@@ -613,6 +630,7 @@ async function finalizeRecording(sessionId: string) {
         content: JSON.stringify(contentJson, null, 2),
         aiSummary: aiSummary || null,
         speakers: speakers.length > 0 ? JSON.parse(JSON.stringify(speakers)) : null,
+        lastUpdated: new Date(),
       },
     });
 

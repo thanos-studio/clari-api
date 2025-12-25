@@ -37,11 +37,13 @@ model Note {
   recordingStatus   String    @default("pending") // pending, recording, completed, failed
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  lastUpdated       DateTime  @default(now())
   authorId          String
   author            User      @relation(fields: [authorId], references: [id])
 
   @@index([authorId])
   @@index([recordingStatus])
+  @@index([lastUpdated])
 }
 
 model KeywordPack {

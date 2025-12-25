@@ -16,7 +16,7 @@ noteRouter.get('/', async (c) => {
 
   const notes = await prisma.note.findMany({
     where: { authorId: userId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { lastUpdated: 'desc' },
     take: limit,
     select: {
       id: true,
@@ -24,6 +24,7 @@ noteRouter.get('/', async (c) => {
       durationInSeconds: true,
       createdAt: true,
       updatedAt: true,
+      lastUpdated: true,
     },
   })
 
@@ -47,6 +48,42 @@ noteRouter.get('/:id', async (c) => {
   }
 
   return c.json({ note })
+})
+
+noteRouter.patch('/:id', async (c) => {
+  const userId = c.get('userId')
+  const noteId = c.req.param('id')
+  const { title, speakers } = await c.req.json()
+
+  const note = await prisma.note.findFirst({
+    where: {
+      id: noteId,
+      authorId: userId,
+    },
+  })
+
+  if (!note) {
+    return c.json({ error: 'Note not found' }, 404)
+  }
+
+  const updateData: any = {
+    lastUpdated: new Date(),
+  }
+
+  if (title !== undefined) {
+    updateData.title = title
+  }
+
+  if (speakers !== undefined) {
+    updateData.speakers = JSON.parse(JSON.stringify(speakers))
+  }
+
+  const updatedNote = await prisma.note.update({
+    where: { id: noteId },
+    data: updateData,
+  })
+
+  return c.json({ note: updatedNote })
 })
 
 noteRouter.delete('/:id', async (c) => {
