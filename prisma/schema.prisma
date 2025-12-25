@@ -40,10 +40,13 @@ model Note {
   lastUpdated       DateTime  @default(now())
   authorId          String
   author            User      @relation(fields: [authorId], references: [id])
+  keywordPackId     String?
+  keywordPack       KeywordPack? @relation(fields: [keywordPackId], references: [id])
 
   @@index([authorId])
   @@index([recordingStatus])
   @@index([lastUpdated])
+  @@index([keywordPackId])
 }
 
 model KeywordPack {
@@ -57,4 +60,5 @@ model KeywordPack {
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id])
+  notes    Note[]
 }

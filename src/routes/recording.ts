@@ -131,6 +131,8 @@ interface RecordingSession {
   sttConnection: any; // ElevenLabs realtime STT connection
   transcriptText: string;
   languageCode: string;
+  keywordPack?: { name: string; description: string }[];
+  keywordDetectionEnabled: boolean;
 }
 
 export const activeSessions = new Map<string, RecordingSession>();
@@ -141,13 +143,14 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
   // POST /session - 새 녹음 세션 생성
   recordingRouter.post("/session", authMiddleware, async (c) => {
     const userId = c.get("userId");
-    const { title, languageCode } = await c.req.json();
+    const { title, languageCode, keywordPackId } = await c.req.json();
 
     const language = languageCode || "ko";
 
     console.log(`📝 [SESSION] Creating session for user: ${userId}`);
     console.log(`📝 [SESSION] Title: ${title}`);
     console.log(`📝 [SESSION] Language: ${language}`);
+    console.log(`📝 [SESSION] KeywordPack ID: ${keywordPackId}`);
 
     const note = await prisma.note.create({
       data: {
@@ -156,6 +159,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
         recordingStatus: "recording",
         durationInSeconds: 0,
         content: JSON.stringify({ languageCode: language }),
+        keywordPackId: keywordPackId || null,
       },
     });
 
@@ -309,6 +313,20 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
 
             console.log(`✅ [${sessionId}] Access granted for user ${userId}`);
 
+            // Load KeywordPack if attached to the note
+            let keywordPackData: { name: string; description: string }[] = [];
+            if (note.keywordPackId) {
+              console.log(`📚 [${sessionId}] Loading KeywordPack: ${note.keywordPackId}`);
+              const keywordPack = await prisma.keywordPack.findUnique({
+                where: { id: note.keywordPackId },
+              });
+              
+              if (keywordPack && Array.isArray(keywordPack.keywords)) {
+                keywordPackData = keywordPack.keywords as { name: string; description: string }[];
+                console.log(`✅ [${sessionId}] Loaded ${keywordPackData.length} keywords`);
+              }
+            }
+
             // Note의 content에서 languageCode 추출
             let languageCode = "ko";
             try {
@@ -348,6 +366,8 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
               sttConnection,
               transcriptText: "",
               languageCode: languageCode,
+              keywordPack: keywordPackData,
+              keywordDetectionEnabled: keywordPackData.length > 0,
             };
 
               if (session) {
@@ -379,6 +399,31 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
                   console.log(`✅ [${sessionId}] COMMITTED: "${text}"`);
                   session!.transcriptText += text + " ";
                   ws.send(JSON.stringify({ type: "committed", text }));
+
+                  // Check for keywords in the transcribed text
+                  if (session!.keywordDetectionEnabled && session!.keywordPack && session!.keywordPack.length > 0) {
+                    const detectedKeywords: { name: string; description: string }[] = [];
+                    
+                    session!.keywordPack.forEach(keyword => {
+                      const keywordLower = keyword.name.toLowerCase();
+                      const textLower = text.toLowerCase();
+                      
+                      // Check if keyword appears in text (whole word match)
+                      const regex = new RegExp(`\\b${keywordLower}\\b`, 'i');
+                      if (regex.test(textLower)) {
+                        detectedKeywords.push(keyword);
+                        console.log(`🔍 [${sessionId}] Keyword detected: "${keyword.name}"`);
+                      }
+                    });
+
+                    // Send detected keywords to client
+                    if (detectedKeywords.length > 0) {
+                      ws.send(JSON.stringify({ 
+                        type: "keywords", 
+                        keywords: detectedKeywords 
+                      }));
+                    }
+                  }
 
                   normalizeTextWithGpt(text).then((formattedText) => {
                     console.log(`✨ [${sessionId}] FORMATTED: "${formattedText}"`);
@@ -429,6 +474,20 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
 
           try {
             const data = JSON.parse(event.data.toString());
+
+            // Handle keyword detection control
+            if (data.action === "keyword.control") {
+              if (data.data === "off") {
+                session.keywordDetectionEnabled = false;
+                console.log(`🔕 [${sessionId}] Keyword detection disabled`);
+                ws.send(JSON.stringify({ type: "keyword.status", enabled: false }));
+              } else if (data.data === "on") {
+                session.keywordDetectionEnabled = true;
+                console.log(`🔔 [${sessionId}] Keyword detection enabled`);
+                ws.send(JSON.stringify({ type: "keyword.status", enabled: true }));
+              }
+              return;
+            }
 
             if (data.audio) {
               // Base64 오디오를 Buffer로 변환
