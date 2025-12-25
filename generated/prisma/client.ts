@@ -54,3 +54,8 @@ export type Note = Prisma.NoteModel
  * 
  */
 export type KeywordPack = Prisma.KeywordPackModel
+/**
+ * Model ExternalResource
+ * 
+ */
+export type ExternalResource = Prisma.ExternalResourceModel

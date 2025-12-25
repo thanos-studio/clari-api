@@ -386,7 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Note: 'Note',
-  KeywordPack: 'KeywordPack'
+  KeywordPack: 'KeywordPack',
+  ExternalResource: 'ExternalResource'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "note" | "keywordPack"
+    modelProps: "user" | "note" | "keywordPack" | "externalResource"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -628,6 +629,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ExternalResource: {
+      payload: Prisma.$ExternalResourcePayload<ExtArgs>
+      fields: Prisma.ExternalResourceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExternalResourceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExternalResourceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload>
+        }
+        findFirst: {
+          args: Prisma.ExternalResourceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExternalResourceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload>
+        }
+        findMany: {
+          args: Prisma.ExternalResourceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload>[]
+        }
+        create: {
+          args: Prisma.ExternalResourceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload>
+        }
+        createMany: {
+          args: Prisma.ExternalResourceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExternalResourceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload>[]
+        }
+        delete: {
+          args: Prisma.ExternalResourceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload>
+        }
+        update: {
+          args: Prisma.ExternalResourceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload>
+        }
+        deleteMany: {
+          args: Prisma.ExternalResourceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExternalResourceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExternalResourceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload>[]
+        }
+        upsert: {
+          args: Prisma.ExternalResourceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExternalResourcePayload>
+        }
+        aggregate: {
+          args: Prisma.ExternalResourceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExternalResource>
+        }
+        groupBy: {
+          args: Prisma.ExternalResourceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExternalResourceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExternalResourceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExternalResourceCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -693,7 +768,9 @@ export const NoteScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   lastUpdated: 'lastUpdated',
-  authorId: 'authorId'
+  authorId: 'authorId',
+  keywordPackIds: 'keywordPackIds',
+  externalResourceIds: 'externalResourceIds'
 } as const
 
 export type NoteScalarFieldEnum = (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum]
@@ -711,6 +788,22 @@ export const KeywordPackScalarFieldEnum = {
 } as const
 
 export type KeywordPackScalarFieldEnum = (typeof KeywordPackScalarFieldEnum)[keyof typeof KeywordPackScalarFieldEnum]
+
+
+export const ExternalResourceScalarFieldEnum = {
+  id: 'id',
+  url: 'url',
+  displayUrl: 'displayUrl',
+  title: 'title',
+  logoUrl: 'logoUrl',
+  scrapedContent: 'scrapedContent',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  authorId: 'authorId'
+} as const
+
+export type ExternalResourceScalarFieldEnum = (typeof ExternalResourceScalarFieldEnum)[keyof typeof ExternalResourceScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -941,6 +1034,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   note?: Prisma.NoteOmit
   keywordPack?: Prisma.KeywordPackOmit
+  externalResource?: Prisma.ExternalResourceOmit
 }
 
 /* Types for Logging */

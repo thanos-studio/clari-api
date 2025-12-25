@@ -213,6 +213,12 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
   const keywordCount = count || 50
 
   try {
+    console.log(`🚀 [AUTOFILL] Starting: ${query} (${keywordCount} keywords)`)
+    
+    // Step 1: Fast Perplexity search with optimized settings
+    console.log(`🔍 [AUTOFILL] Step 1/2: Searching with Perplexity...`)
+    const perplexityStart = Date.now()
+    
     const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
@@ -220,15 +226,15 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'sonar',
+        model: 'sonar', // Fast model
         messages: [
           {
             role: 'user',
-            content: `${query}와 관련된 기술 용어들을 최대한 많이 찾아주세요. 각 용어에 대한 간단한 설명도 포함해주세요.`,
+            content: `List ${Math.min(keywordCount + 10, 60)} technical terms related to: ${query}. Include brief definitions.`,
           },
         ],
-        search_domain_filter: ['perplexity.ai'],
-        search_recency_filter: 'month',
+        max_tokens: 2000, // Reduced for speed
+        temperature: 0.3, // Lower for consistency
       }),
     })
 
@@ -238,21 +244,28 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
 
     const perplexityData = await perplexityResponse.json()
     const searchResult = perplexityData.choices[0].message.content
+    
+    const perplexityTime = Date.now() - perplexityStart
+    console.log(`✅ [AUTOFILL] Step 1 complete (${perplexityTime}ms)`)
 
+    // Step 2: Quick GPT extraction
+    console.log(`🤖 [AUTOFILL] Step 2/2: Extracting keywords with GPT...`)
+    const gptStart = Date.now()
+    
     const response = await azureOpenAI.chat.completions.create({
       model: process.env.AZURE_DEPLOYMENT_NAME!,
       messages: [
         {
           role: 'system',
-          content: `You are an expert at extracting and structuring technical terms. Extract exactly ${keywordCount} terms with Korean descriptions from the provided text in JSON format.`,
+          content: `Extract exactly ${keywordCount} technical terms with Korean descriptions. Return ONLY valid JSON array.`,
         },
         {
           role: 'user',
-          content: `다음 검색 결과에서 기술 용어 ${keywordCount}개를 추출하고, 각각에 대한 한줄 설명을 한국어로 작성해주세요:\n\n${searchResult}\n\n반드시 다음 JSON 형식으로 반환해주세요:\n[\n  {"name": "용어1", "description": "한줄 설명1"},\n  {"name": "용어2", "description": "한줄 설명2"},\n  ...\n]\n\n정확히 ${keywordCount}개의 용어를 포함해주세요.`,
+          content: `Extract ${keywordCount} terms:\n\n${searchResult}\n\nJSON format: [{"name":"term","description":"Korean desc"}]`,
         },
       ],
-      temperature: 0.3,
-      max_tokens: 4000,
+      temperature: 0.2,
+      max_tokens: Math.min(keywordCount * 50, 4000), // Dynamic based on count
     })
 
     const content = response.choices[0].message.content || '[]'
@@ -264,9 +277,24 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
       keywords = []
     }
 
-    return c.json({ keywords })
+    const gptTime = Date.now() - gptStart
+    const totalTime = perplexityTime + gptTime
+    
+    console.log(`✅ [AUTOFILL] Step 2 complete (${gptTime}ms)`)
+    console.log(`🎉 [AUTOFILL] Total: ${keywords.length} keywords in ${totalTime}ms`)
+
+    return c.json({ 
+      keywords,
+      stats: {
+        perplexityTime,
+        gptTime,
+        totalTime,
+        requestedCount: keywordCount,
+        actualCount: keywords.length
+      }
+    })
   } catch (error) {
-    console.error('AI autofill error:', error)
+    console.error('❌ [AUTOFILL] Error:', error)
     return c.json({ error: 'Failed to generate keywords' }, 500)
   }
 })

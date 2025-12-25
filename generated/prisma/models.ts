@@ -11,4 +11,5 @@
 export type * from './models/User.js'
 export type * from './models/Note.js'
 export type * from './models/KeywordPack.js'
+export type * from './models/ExternalResource.js'
 export type * from './commonInputTypes.js'

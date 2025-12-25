@@ -53,7 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Note: 'Note',
-  KeywordPack: 'KeywordPack'
+  KeywordPack: 'KeywordPack',
+  ExternalResource: 'ExternalResource'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -98,7 +99,9 @@ export const NoteScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   lastUpdated: 'lastUpdated',
-  authorId: 'authorId'
+  authorId: 'authorId',
+  keywordPackIds: 'keywordPackIds',
+  externalResourceIds: 'externalResourceIds'
 } as const
 
 export type NoteScalarFieldEnum = (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum]
@@ -116,6 +119,22 @@ export const KeywordPackScalarFieldEnum = {
 } as const
 
 export type KeywordPackScalarFieldEnum = (typeof KeywordPackScalarFieldEnum)[keyof typeof KeywordPackScalarFieldEnum]
+
+
+export const ExternalResourceScalarFieldEnum = {
+  id: 'id',
+  url: 'url',
+  displayUrl: 'displayUrl',
+  title: 'title',
+  logoUrl: 'logoUrl',
+  scrapedContent: 'scrapedContent',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  authorId: 'authorId'
+} as const
+
+export type ExternalResourceScalarFieldEnum = (typeof ExternalResourceScalarFieldEnum)[keyof typeof ExternalResourceScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -78,6 +78,8 @@ export type NoteCountAggregateOutputType = {
   updatedAt: number
   lastUpdated: number
   authorId: number
+  keywordPackIds: number
+  externalResourceIds: number
   _all: number
 }
 
@@ -134,6 +136,8 @@ export type NoteCountAggregateInputType = {
   updatedAt?: true
   lastUpdated?: true
   authorId?: true
+  keywordPackIds?: true
+  externalResourceIds?: true
   _all?: true
 }
 
@@ -237,6 +241,8 @@ export type NoteGroupByOutputType = {
   updatedAt: Date
   lastUpdated: Date
   authorId: string
+  keywordPackIds: string[]
+  externalResourceIds: string[]
   _count: NoteCountAggregateOutputType | null
   _avg: NoteAvgAggregateOutputType | null
   _sum: NoteSumAggregateOutputType | null
@@ -276,6 +282,8 @@ export type NoteWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Note"> | Date | string
   lastUpdated?: Prisma.DateTimeFilter<"Note"> | Date | string
   authorId?: Prisma.StringFilter<"Note"> | string
+  keywordPackIds?: Prisma.StringNullableListFilter<"Note">
+  externalResourceIds?: Prisma.StringNullableListFilter<"Note">
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
@@ -293,6 +301,8 @@ export type NoteOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   lastUpdated?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
+  keywordPackIds?: Prisma.SortOrder
+  externalResourceIds?: Prisma.SortOrder
   author?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -313,6 +323,8 @@ export type NoteWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Note"> | Date | string
   lastUpdated?: Prisma.DateTimeFilter<"Note"> | Date | string
   authorId?: Prisma.StringFilter<"Note"> | string
+  keywordPackIds?: Prisma.StringNullableListFilter<"Note">
+  externalResourceIds?: Prisma.StringNullableListFilter<"Note">
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id">
 
@@ -330,6 +342,8 @@ export type NoteOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   lastUpdated?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
+  keywordPackIds?: Prisma.SortOrder
+  externalResourceIds?: Prisma.SortOrder
   _count?: Prisma.NoteCountOrderByAggregateInput
   _avg?: Prisma.NoteAvgOrderByAggregateInput
   _max?: Prisma.NoteMaxOrderByAggregateInput
@@ -354,6 +368,8 @@ export type NoteScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Note"> | Date | string
   lastUpdated?: Prisma.DateTimeWithAggregatesFilter<"Note"> | Date | string
   authorId?: Prisma.StringWithAggregatesFilter<"Note"> | string
+  keywordPackIds?: Prisma.StringNullableListFilter<"Note">
+  externalResourceIds?: Prisma.StringNullableListFilter<"Note">
 }
 
 export type NoteCreateInput = {
@@ -369,6 +385,8 @@ export type NoteCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lastUpdated?: Date | string
+  keywordPackIds?: Prisma.NoteCreatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteCreateexternalResourceIdsInput | string[]
   author: Prisma.UserCreateNestedOneWithoutNoteInput
 }
 
@@ -386,6 +404,8 @@ export type NoteUncheckedCreateInput = {
   updatedAt?: Date | string
   lastUpdated?: Date | string
   authorId: string
+  keywordPackIds?: Prisma.NoteCreatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteCreateexternalResourceIdsInput | string[]
 }
 
 export type NoteUpdateInput = {
@@ -401,6 +421,8 @@ export type NoteUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastUpdated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  keywordPackIds?: Prisma.NoteUpdatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteUpdateexternalResourceIdsInput | string[]
   author?: Prisma.UserUpdateOneRequiredWithoutNoteNestedInput
 }
 
@@ -418,6 +440,8 @@ export type NoteUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastUpdated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authorId?: Prisma.StringFieldUpdateOperationsInput | string
+  keywordPackIds?: Prisma.NoteUpdatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteUpdateexternalResourceIdsInput | string[]
 }
 
 export type NoteCreateManyInput = {
@@ -434,6 +458,8 @@ export type NoteCreateManyInput = {
   updatedAt?: Date | string
   lastUpdated?: Date | string
   authorId: string
+  keywordPackIds?: Prisma.NoteCreatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteCreateexternalResourceIdsInput | string[]
 }
 
 export type NoteUpdateManyMutationInput = {
@@ -449,6 +475,8 @@ export type NoteUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastUpdated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  keywordPackIds?: Prisma.NoteUpdatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteUpdateexternalResourceIdsInput | string[]
 }
 
 export type NoteUncheckedUpdateManyInput = {
@@ -465,6 +493,8 @@ export type NoteUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastUpdated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authorId?: Prisma.StringFieldUpdateOperationsInput | string
+  keywordPackIds?: Prisma.NoteUpdatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteUpdateexternalResourceIdsInput | string[]
 }
 
 export type NoteListRelationFilter = {
@@ -475,6 +505,14 @@ export type NoteListRelationFilter = {
 
 export type NoteOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
 }
 
 export type NoteCountOrderByAggregateInput = {
@@ -491,6 +529,8 @@ export type NoteCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   lastUpdated?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
+  keywordPackIds?: Prisma.SortOrder
+  externalResourceIds?: Prisma.SortOrder
 }
 
 export type NoteAvgOrderByAggregateInput = {
@@ -573,6 +613,14 @@ export type NoteUncheckedUpdateManyWithoutAuthorNestedInput = {
   deleteMany?: Prisma.NoteScalarWhereInput | Prisma.NoteScalarWhereInput[]
 }
 
+export type NoteCreatekeywordPackIdsInput = {
+  set: string[]
+}
+
+export type NoteCreateexternalResourceIdsInput = {
+  set: string[]
+}
+
 export type IntFieldUpdateOperationsInput = {
   set?: number
   increment?: number
@@ -583,6 +631,16 @@ export type IntFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type NoteUpdatekeywordPackIdsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type NoteUpdateexternalResourceIdsInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type NoteCreateWithoutAuthorInput = {
@@ -598,6 +656,8 @@ export type NoteCreateWithoutAuthorInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lastUpdated?: Date | string
+  keywordPackIds?: Prisma.NoteCreatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteCreateexternalResourceIdsInput | string[]
 }
 
 export type NoteUncheckedCreateWithoutAuthorInput = {
@@ -613,6 +673,8 @@ export type NoteUncheckedCreateWithoutAuthorInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lastUpdated?: Date | string
+  keywordPackIds?: Prisma.NoteCreatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteCreateexternalResourceIdsInput | string[]
 }
 
 export type NoteCreateOrConnectWithoutAuthorInput = {
@@ -658,6 +720,8 @@ export type NoteScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Note"> | Date | string
   lastUpdated?: Prisma.DateTimeFilter<"Note"> | Date | string
   authorId?: Prisma.StringFilter<"Note"> | string
+  keywordPackIds?: Prisma.StringNullableListFilter<"Note">
+  externalResourceIds?: Prisma.StringNullableListFilter<"Note">
 }
 
 export type NoteCreateManyAuthorInput = {
@@ -673,6 +737,8 @@ export type NoteCreateManyAuthorInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lastUpdated?: Date | string
+  keywordPackIds?: Prisma.NoteCreatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteCreateexternalResourceIdsInput | string[]
 }
 
 export type NoteUpdateWithoutAuthorInput = {
@@ -688,6 +754,8 @@ export type NoteUpdateWithoutAuthorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastUpdated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  keywordPackIds?: Prisma.NoteUpdatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteUpdateexternalResourceIdsInput | string[]
 }
 
 export type NoteUncheckedUpdateWithoutAuthorInput = {
@@ -703,6 +771,8 @@ export type NoteUncheckedUpdateWithoutAuthorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastUpdated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  keywordPackIds?: Prisma.NoteUpdatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteUpdateexternalResourceIdsInput | string[]
 }
 
 export type NoteUncheckedUpdateManyWithoutAuthorInput = {
@@ -718,6 +788,8 @@ export type NoteUncheckedUpdateManyWithoutAuthorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastUpdated?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  keywordPackIds?: Prisma.NoteUpdatekeywordPackIdsInput | string[]
+  externalResourceIds?: Prisma.NoteUpdateexternalResourceIdsInput | string[]
 }
 
 
@@ -736,6 +808,8 @@ export type NoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   lastUpdated?: boolean
   authorId?: boolean
+  keywordPackIds?: boolean
+  externalResourceIds?: boolean
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["note"]>
 
@@ -753,6 +827,8 @@ export type NoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   updatedAt?: boolean
   lastUpdated?: boolean
   authorId?: boolean
+  keywordPackIds?: boolean
+  externalResourceIds?: boolean
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["note"]>
 
@@ -770,6 +846,8 @@ export type NoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   updatedAt?: boolean
   lastUpdated?: boolean
   authorId?: boolean
+  keywordPackIds?: boolean
+  externalResourceIds?: boolean
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["note"]>
 
@@ -787,9 +865,11 @@ export type NoteSelectScalar = {
   updatedAt?: boolean
   lastUpdated?: boolean
   authorId?: boolean
+  keywordPackIds?: boolean
+  externalResourceIds?: boolean
 }
 
-export type NoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "content" | "aiSummary" | "speakers" | "durationInSeconds" | "isPublic" | "recordingUrl" | "recordingStatus" | "createdAt" | "updatedAt" | "lastUpdated" | "authorId", ExtArgs["result"]["note"]>
+export type NoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "content" | "aiSummary" | "speakers" | "durationInSeconds" | "isPublic" | "recordingUrl" | "recordingStatus" | "createdAt" | "updatedAt" | "lastUpdated" | "authorId" | "keywordPackIds" | "externalResourceIds", ExtArgs["result"]["note"]>
 export type NoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -819,6 +899,8 @@ export type $NotePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     updatedAt: Date
     lastUpdated: Date
     authorId: string
+    keywordPackIds: string[]
+    externalResourceIds: string[]
   }, ExtArgs["result"]["note"]>
   composites: {}
 }
@@ -1256,6 +1338,8 @@ export interface NoteFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"Note", 'DateTime'>
   readonly lastUpdated: Prisma.FieldRef<"Note", 'DateTime'>
   readonly authorId: Prisma.FieldRef<"Note", 'String'>
+  readonly keywordPackIds: Prisma.FieldRef<"Note", 'String[]'>
+  readonly externalResourceIds: Prisma.FieldRef<"Note", 'String[]'>
 }
     
 

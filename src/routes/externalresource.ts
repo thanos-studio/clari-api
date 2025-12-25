@@ -108,13 +108,9 @@ externalResourceRouter.post('/', async (c) => {
   try {
     // Scrape website with Firecrawl
     console.log(`🔥 [FIRECRAWL] Scraping: ${url}`)
-    const scrapeResult = await firecrawl.scrapeUrl(url, {
+    const scrapeResult = await firecrawl.scrape(url, {
       formats: ['markdown', 'html'],
     })
-
-    if (!scrapeResult.success) {
-      throw new Error('Failed to scrape URL')
-    }
 
     const displayUrl = extractDisplayUrl(url)
     const scrapedContent = scrapeResult.markdown || scrapeResult.html || ''
@@ -143,7 +139,8 @@ externalResourceRouter.post('/', async (c) => {
     return c.json({ resource })
   } catch (error) {
     console.error('Firecrawl error:', error)
-    return c.json({ error: 'Failed to scrape URL' }, 500)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    return c.json({ error: 'Failed to scrape URL', details: errorMessage }, 500)
   }
 })
 

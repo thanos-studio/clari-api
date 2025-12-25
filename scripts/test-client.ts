@@ -196,9 +196,102 @@ async function createSession() {
     default: `Recording ${new Date().toLocaleString()}`,
   });
 
+  // Ask for language
+  const languageCode = await select({
+    message: "Select language:",
+    choices: [
+      { name: "🇰🇷 Korean", value: "ko" },
+      { name: "🇺🇸 English", value: "en" },
+      { name: "🇯🇵 Japanese", value: "ja" },
+      { name: "🇨🇳 Chinese", value: "zh" },
+    ],
+    default: "ko",
+  });
+
+  // Ask if want to attach keyword packs
+  const attachKeywordPacks = await confirm({
+    message: "Attach keyword packs?",
+    default: false,
+  });
+
+  let keywordPackIds: string[] = [];
+  if (attachKeywordPacks) {
+    // Fetch available packs
+    const spinner = ora("Fetching keyword packs...").start();
+    try {
+      const response = await fetch(`${API_BASE_URL}/keywordpacks?limit=100`, {
+        headers: { Authorization: `Bearer ${JWT_TOKEN}` },
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.packs.length > 0) {
+        spinner.stop();
+        
+        // Multi-select keyword packs
+        const selectedPacks = await select({
+          message: "Select keyword packs (Enter to continue):",
+          choices: data.packs.map((pack: any) => ({
+            name: `📦 ${pack.name} (${Array.isArray(pack.keywords) ? pack.keywords.length : 0} keywords)`,
+            value: pack.id,
+          })).concat([{ name: "✅ Done (no selection)", value: null }]),
+        });
+        
+        if (selectedPacks) {
+          keywordPackIds = [selectedPacks];
+        }
+      } else {
+        spinner.succeed("No keyword packs available");
+      }
+    } catch (e) {
+      spinner.fail(`Error: ${e}`);
+    }
+  }
+
+  // Ask if want to attach external resources
+  const attachResources = await confirm({
+    message: "Attach external resources?",
+    default: false,
+  });
+
+  let externalResourceIds: string[] = [];
+  if (attachResources) {
+    // Fetch available resources
+    const spinner = ora("Fetching external resources...").start();
+    try {
+      const response = await fetch(`${API_BASE_URL}/externalresources?limit=100`, {
+        headers: { Authorization: `Bearer ${JWT_TOKEN}` },
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.resources.length > 0) {
+        spinner.stop();
+        
+        // Multi-select resources
+        const selectedResource = await select({
+          message: "Select external resources (Enter to continue):",
+          choices: data.resources.map((resource: any) => ({
+            name: `🌐 ${resource.title} - ${resource.displayUrl}`,
+            value: resource.id,
+          })).concat([{ name: "✅ Done (no selection)", value: null }]),
+        });
+        
+        if (selectedResource) {
+          externalResourceIds = [selectedResource];
+        }
+      } else {
+        spinner.succeed("No external resources available");
+      }
+    } catch (e) {
+      spinner.fail(`Error: ${e}`);
+    }
+  }
+
   const spinner = ora("Creating session...").start();
 
   logDebug(`Creating session with title: ${title}`);
+  logDebug(`Language: ${languageCode}`);
+  logDebug(`KeywordPacks: ${keywordPackIds.join(", ") || "none"}`);
+  logDebug(`ExternalResources: ${externalResourceIds.join(", ") || "none"}`);
   logDebug(`Using token: ${JWT_TOKEN}`);
 
   try {
@@ -208,7 +301,12 @@ async function createSession() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${JWT_TOKEN}`,
       },
-      body: JSON.stringify({ title }),
+      body: JSON.stringify({ 
+        title,
+        languageCode,
+        keywordPackIds: keywordPackIds.length > 0 ? keywordPackIds : undefined,
+        externalResourceIds: externalResourceIds.length > 0 ? externalResourceIds : undefined,
+      }),
     });
 
     logDebug(`Response status: ${response.status}`);
@@ -220,6 +318,9 @@ async function createSession() {
       currentSessionId = data.sessionId;
       spinner.succeed(chalk.green(`Session created: ${currentSessionId}`));
       logInfo(`Note ID: ${data.noteId}`);
+      logInfo(`Language: ${languageCode}`);
+      if (keywordPackIds.length > 0) logInfo(`Keyword Packs: ${keywordPackIds.length} attached`);
+      if (externalResourceIds.length > 0) logInfo(`External Resources: ${externalResourceIds.length} attached`);
       
       // Show session menu immediately
       await sessionMenu();
@@ -253,6 +354,8 @@ async function sessionMenu() {
     } else {
       choices.push({ name: "⏹️  Stop Recording", value: "stop" });
       choices.push({ name: "⏸️  Pause Recording", value: "pause" });
+      choices.push({ name: "🔕 Toggle Keyword Detection", value: "toggle_keywords" });
+      choices.push({ name: "💡 Toggle Resource Hints", value: "toggle_hints" });
     }
     
     const action = await select({
@@ -269,6 +372,12 @@ async function sessionMenu() {
         return; // Exit session menu after stop
       case "pause":
         await pauseRecording();
+        break;
+      case "toggle_keywords":
+        await toggleKeywordDetection();
+        break;
+      case "toggle_hints":
+        await toggleResourceHints();
         break;
       case "cancel":
         await cancelRecording();
@@ -288,6 +397,42 @@ async function pauseRecording() {
   
   stopRecording(); // Stop audio capture but keep session
   logWarning("Recording paused. Select 'Start Recording' to resume.");
+}
+
+async function toggleKeywordDetection() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    logError("WebSocket not connected");
+    return;
+  }
+
+  const action = await select({
+    message: "Keyword detection:",
+    choices: [
+      { name: "🔔 Turn ON", value: "on" },
+      { name: "🔕 Turn OFF", value: "off" },
+    ],
+  });
+
+  ws.send(JSON.stringify({ action: "keyword.control", data: action }));
+  logInfo(`Keyword detection ${action === "on" ? "enabled" : "disabled"}`);
+}
+
+async function toggleResourceHints() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    logError("WebSocket not connected");
+    return;
+  }
+
+  const action = await select({
+    message: "Resource hints:",
+    choices: [
+      { name: "💡 Turn ON", value: "on" },
+      { name: "🔕 Turn OFF", value: "off" },
+    ],
+  });
+
+  ws.send(JSON.stringify({ action: "hints.control", data: action }));
+  logInfo(`Resource hints ${action === "on" ? "enabled" : "disabled"}`);
 }
 
 async function startRecording() {
@@ -467,6 +612,34 @@ function setupWebSocketHandlers(resolve: (value: boolean) => void) {
             } else {
               console.log(chalk.yellow(`⚠️  Empty FORMATTED received`));
             }
+            break;
+          case "keywords":
+            // Detected keywords from keyword packs
+            if (data.keywords && data.keywords.length > 0) {
+              console.log(chalk.magenta.bold(`\n🔍 [키워드 감지]`));
+              data.keywords.forEach((kw: any) => {
+                console.log(chalk.magenta(`  • ${kw.name}: ${kw.description}`));
+              });
+              console.log("");
+            }
+            break;
+          case "hints":
+            // Hints from external resources
+            if (data.hints && data.hints.length > 0) {
+              console.log(chalk.cyan.bold(`\n💡 [외부 자료 힌트]`));
+              data.hints.forEach((hint: any) => {
+                console.log(chalk.cyan(`  📚 [${hint.resourceTitle}]`));
+                console.log(chalk.cyan(`     ${hint.hint}`));
+                console.log(chalk.gray(`     출처: ${hint.sourceUrl}`));
+              });
+              console.log("");
+            }
+            break;
+          case "keyword.status":
+            logInfo(`Keyword detection: ${data.enabled ? "ON" : "OFF"}`);
+            break;
+          case "hints.status":
+            logInfo(`Resource hints: ${data.enabled ? "ON" : "OFF"}`);
             break;
           case "error":
             process.stdout.write("\r" + " ".repeat(120) + "\r"); // Clear line
@@ -809,6 +982,375 @@ async function downloadRecording(url: string) {
   }
 }
 
+async function manageKeywordPacks() {
+  console.log("\n" + chalk.bold("🔖 Keyword Packs Management\n"));
+  
+  const action = await select({
+    message: "What would you like to do?",
+    choices: [
+      { name: "📋 List all keyword packs", value: "list" },
+      { name: "➕ Create new keyword pack", value: "create" },
+      { name: "➕ Add keyword to pack", value: "add_keyword" },
+      { name: "🤖 AI Autocomplete (get description suggestions)", value: "autocomplete" },
+      { name: "🚀 AI Autofill (generate keywords from query)", value: "autofill" },
+      { name: "🔙 Back to main menu", value: "back" },
+    ],
+  });
+
+  if (action === "back") return;
+
+  if (action === "list") {
+    const spinner = ora("Fetching keyword packs...").start();
+    try {
+      const response = await fetch(`${API_BASE_URL}/keywordpacks`, {
+        headers: { Authorization: `Bearer ${JWT_TOKEN}` },
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        spinner.succeed(`Found ${data.packs.length} keyword packs`);
+        if (data.packs.length === 0) {
+          logInfo("No keyword packs yet.");
+        } else {
+          data.packs.forEach((pack: any) => {
+            console.log(chalk.cyan(`\n📦 ${pack.name} (${pack.id})`));
+            console.log(chalk.gray(`   Created: ${new Date(pack.createdAt).toLocaleString()}`));
+            console.log(chalk.gray(`   Keywords: ${Array.isArray(pack.keywords) ? pack.keywords.length : 0}`));
+          });
+        }
+      } else {
+        spinner.fail(`Failed: ${JSON.stringify(data)}`);
+      }
+    } catch (e) {
+      spinner.fail(`Error: ${e}`);
+    }
+  } else if (action === "create") {
+    const name = await input({ message: "Keyword pack name:" });
+    
+    const spinner = ora("Creating keyword pack...").start();
+    try {
+      const response = await fetch(`${API_BASE_URL}/keywordpacks`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${JWT_TOKEN}`,
+        },
+        body: JSON.stringify({ name, keywords: [] }),
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        spinner.succeed(`Created: ${data.pack.id}`);
+        logInfo(`Use this ID when creating sessions: ${data.pack.id}`);
+      } else {
+        spinner.fail(`Failed: ${JSON.stringify(data)}`);
+      }
+    } catch (e) {
+      spinner.fail(`Error: ${e}`);
+    }
+  } else if (action === "add_keyword") {
+    // Fetch available packs
+    const packsSpinner = ora("Fetching keyword packs...").start();
+    try {
+      const packsResponse = await fetch(`${API_BASE_URL}/keywordpacks?limit=100`, {
+        headers: { Authorization: `Bearer ${JWT_TOKEN}` },
+      });
+      const packsData = await packsResponse.json();
+      
+      if (packsResponse.ok && packsData.packs.length > 0) {
+        packsSpinner.stop();
+        
+        const packId = await select({
+          message: "Select keyword pack:",
+          choices: packsData.packs.map((pack: any) => ({
+            name: `📦 ${pack.name} (${Array.isArray(pack.keywords) ? pack.keywords.length : 0} keywords)`,
+            value: pack.id,
+          })),
+        });
+        
+        const keywordName = await input({ message: "Enter keyword name:" });
+        const keywordDesc = await input({ message: "Enter keyword description:" });
+        
+        const spinner = ora("Adding keyword...").start();
+        try {
+          const response = await fetch(`${API_BASE_URL}/keywordpacks/${packId}/keywords`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${JWT_TOKEN}`,
+            },
+            body: JSON.stringify({ name: keywordName, description: keywordDesc }),
+          });
+          const data = await response.json();
+          
+          if (response.ok) {
+            spinner.succeed("Keyword added successfully!");
+          } else {
+            spinner.fail(`Failed: ${JSON.stringify(data)}`);
+          }
+        } catch (e) {
+          spinner.fail(`Error: ${e}`);
+        }
+      } else {
+        packsSpinner.fail("No keyword packs available. Create one first!");
+      }
+    } catch (e) {
+      packsSpinner.fail(`Error: ${e}`);
+    }
+  } else if (action === "autocomplete") {
+    const keywordName = await input({ message: "Enter keyword name (for description suggestions):" });
+    
+    const spinner = ora("Generating AI suggestions...").start();
+    try {
+      const response = await fetch(`${API_BASE_URL}/keywordpacks/ai/autocomplete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${JWT_TOKEN}`,
+        },
+        body: JSON.stringify({ name: keywordName }),
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.suggestions) {
+        spinner.succeed(`Generated ${data.suggestions.length} suggestions:`);
+        console.log(chalk.bold("\n💡 AI Suggestions:\n"));
+        data.suggestions.forEach((suggestion: string, index: number) => {
+          console.log(chalk.cyan(`${index + 1}. ${suggestion}`));
+        });
+        
+        const selected = await select({
+          message: "Select a description:",
+          choices: data.suggestions.map((s: string, i: number) => ({
+            name: s,
+            value: i,
+          })).concat([{ name: "❌ Cancel", value: -1 }]),
+        });
+        
+        if (selected !== -1) {
+          const selectedDesc = data.suggestions[selected];
+          
+          // Fetch available packs for dropdown
+          const packsSpinner = ora("Fetching keyword packs...").start();
+          try {
+            const packsResponse = await fetch(`${API_BASE_URL}/keywordpacks?limit=100`, {
+              headers: { Authorization: `Bearer ${JWT_TOKEN}` },
+            });
+            const packsData = await packsResponse.json();
+            
+            if (packsResponse.ok && packsData.packs.length > 0) {
+              packsSpinner.stop();
+              
+              const packId = await select({
+                message: "Select keyword pack to add to:",
+                choices: packsData.packs.map((pack: any) => ({
+                  name: `📦 ${pack.name} (${Array.isArray(pack.keywords) ? pack.keywords.length : 0} keywords)`,
+                  value: pack.id,
+                })),
+              });
+              
+              const addSpinner = ora("Adding keyword...").start();
+              try {
+                const addResponse = await fetch(`${API_BASE_URL}/keywordpacks/${packId}/keywords`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${JWT_TOKEN}`,
+                  },
+                  body: JSON.stringify({ name: keywordName, description: selectedDesc }),
+                });
+                
+                const addData = await addResponse.json();
+                
+                if (addResponse.ok) {
+                  addSpinner.succeed("Keyword added with AI description!");
+                } else {
+                  addSpinner.fail(`Failed to add keyword: ${JSON.stringify(addData)}`);
+                }
+              } catch (e) {
+                addSpinner.fail(`Error: ${e}`);
+              }
+            } else {
+              packsSpinner.fail("No keyword packs available. Create one first!");
+            }
+          } catch (e) {
+            packsSpinner.fail(`Error: ${e}`);
+          }
+        }
+      } else {
+        spinner.fail(`Failed: ${JSON.stringify(data)}`);
+      }
+    } catch (e) {
+      spinner.fail(`Error: ${e}`);
+    }
+  } else if (action === "autofill") {
+    const query = await input({ message: "Enter search query (e.g., 'AWS 관련 단어'):" });
+    const count = await input({ message: "How many keywords? (default: 50):", default: "50" });
+    
+    console.log(chalk.cyan("\n🚀 Starting AI Autofill..."));
+    console.log(chalk.gray("Step 1: Searching with Perplexity..."));
+    
+    const autofillSpinner = ora("Searching with Perplexity...").start();
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/keywordpacks/ai/autofill`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${JWT_TOKEN}`,
+        },
+        body: JSON.stringify({ query, count: parseInt(count) }),
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.keywords) {
+        autofillSpinner.stop();
+        
+        // Show stats
+        if (data.stats) {
+          console.log(chalk.bold.cyan("\n📊 Performance Stats:"));
+          console.log(chalk.gray(`  Perplexity Search: ${data.stats.perplexityTime}ms`));
+          console.log(chalk.gray(`  GPT Extraction: ${data.stats.gptTime}ms`));
+          console.log(chalk.green(`  Total Time: ${data.stats.totalTime}ms`));
+          console.log(chalk.gray(`  Requested: ${data.stats.requestedCount} keywords`));
+          console.log(chalk.green(`  Generated: ${data.stats.actualCount} keywords\n`));
+        }
+        
+        logSuccess(`Generated ${data.keywords.length} keywords!`);
+        
+        console.log(chalk.bold(`\n🚀 Generated Keywords (showing first 10):\n`));
+        data.keywords.slice(0, 10).forEach((kw: any, index: number) => {
+          console.log(chalk.cyan(`${index + 1}. ${kw.name}`));
+          console.log(chalk.gray(`   ${kw.description}\n`));
+        });
+        
+        const shouldAdd = await confirm({
+          message: `Add all ${data.keywords.length} keywords to a pack?`,
+          default: true,
+        });
+        
+        if (shouldAdd) {
+          // Fetch available packs
+          const packsSpinner = ora("Fetching keyword packs...").start();
+          try {
+            const packsResponse = await fetch(`${API_BASE_URL}/keywordpacks?limit=100`, {
+              headers: { Authorization: `Bearer ${JWT_TOKEN}` },
+            });
+            const packsData = await packsResponse.json();
+            
+            if (packsResponse.ok && packsData.packs.length > 0) {
+              packsSpinner.stop();
+              
+              const packId = await select({
+                message: "Select keyword pack to add to:",
+                choices: packsData.packs.map((pack: any) => ({
+                  name: `📦 ${pack.name} (${Array.isArray(pack.keywords) ? pack.keywords.length : 0} keywords)`,
+                  value: pack.id,
+                })),
+              });
+              
+              const updateSpinner = ora("Updating keyword pack...").start();
+              const updateResponse = await fetch(`${API_BASE_URL}/keywordpacks/${packId}`, {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${JWT_TOKEN}`,
+                },
+                body: JSON.stringify({ keywords: data.keywords }),
+              });
+              
+              if (updateResponse.ok) {
+                updateSpinner.succeed(`Added ${data.keywords.length} keywords to pack!`);
+              } else {
+                updateSpinner.fail("Failed to update pack");
+              }
+            } else {
+              packsSpinner.fail("No keyword packs available. Create one first!");
+            }
+          } catch (e) {
+            packsSpinner.fail(`Error: ${e}`);
+          }
+        }
+      } else {
+        autofillSpinner.fail(`Failed: ${JSON.stringify(data)}`);
+      }
+    } catch (e) {
+      autofillSpinner.fail(`Error: ${e}`);
+    }
+  }
+
+  await input({ message: chalk.gray("Press Enter to continue...") });
+}
+
+async function manageExternalResources() {
+  console.log("\n" + chalk.bold("🌐 External Resources Management\n"));
+  
+  const action = await select({
+    message: "What would you like to do?",
+    choices: [
+      { name: "📋 List all external resources", value: "list" },
+      { name: "➕ Create new external resource", value: "create" },
+      { name: "🔙 Back to main menu", value: "back" },
+    ],
+  });
+
+  if (action === "back") return;
+
+  if (action === "list") {
+    const spinner = ora("Fetching external resources...").start();
+    try {
+      const response = await fetch(`${API_BASE_URL}/externalresources`, {
+        headers: { Authorization: `Bearer ${JWT_TOKEN}` },
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        spinner.succeed(`Found ${data.resources.length} external resources`);
+        if (data.resources.length === 0) {
+          logInfo("No external resources yet.");
+        } else {
+          data.resources.forEach((resource: any) => {
+            console.log(chalk.cyan(`\n🌐 ${resource.title} (${resource.id})`));
+            console.log(chalk.gray(`   URL: ${resource.displayUrl}`));
+            console.log(chalk.gray(`   Created: ${new Date(resource.createdAt).toLocaleString()}`));
+          });
+        }
+      } else {
+        spinner.fail(`Failed: ${JSON.stringify(data)}`);
+      }
+    } catch (e) {
+      spinner.fail(`Error: ${e}`);
+    }
+  } else if (action === "create") {
+    const url = await input({ message: "Enter website URL:" });
+    
+    const spinner = ora("Scraping website with Firecrawl...").start();
+    try {
+      const response = await fetch(`${API_BASE_URL}/externalresources`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${JWT_TOKEN}`,
+        },
+        body: JSON.stringify({ url }),
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        spinner.succeed(`Created: ${data.resource.title} (${data.resource.id})`);
+        logInfo(`Display URL: ${data.resource.displayUrl}`);
+        logInfo(`Use this ID when creating sessions: ${data.resource.id}`);
+      } else {
+        spinner.fail(`Failed: ${JSON.stringify(data)}`);
+      }
+    } catch (e) {
+      spinner.fail(`Error: ${e}`);
+    }
+  }
+
+  await input({ message: chalk.gray("Press Enter to continue...") });
+}
+
 // Main menu
 async function mainMenu() {
   console.clear();
@@ -842,6 +1384,8 @@ async function mainMenu() {
   } else {
     choices.push({ name: "🎬 Start New Recording Session", value: "create" });
     choices.push({ name: "📚 View My Notes", value: "list" });
+    choices.push({ name: "🔖 Manage Keyword Packs", value: "keywordpacks" });
+    choices.push({ name: "🌐 Manage External Resources", value: "resources" });
   }
 
   choices.push({ name: "🚪 Exit", value: "exit" });
@@ -863,6 +1407,12 @@ async function mainMenu() {
       break;
     case "list":
       await listNotes();
+      break;
+    case "keywordpacks":
+      await manageKeywordPacks();
+      break;
+    case "resources":
+      await manageExternalResources();
       break;
     case "exit":
       if (isRecording) {

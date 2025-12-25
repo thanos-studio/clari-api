@@ -200,6 +200,7 @@ export type UserWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   Note?: Prisma.NoteListRelationFilter
   KeywordPack?: Prisma.KeywordPackListRelationFilter
+  ExternalResource?: Prisma.ExternalResourceListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -212,6 +213,7 @@ export type UserOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   Note?: Prisma.NoteOrderByRelationAggregateInput
   KeywordPack?: Prisma.KeywordPackOrderByRelationAggregateInput
+  ExternalResource?: Prisma.ExternalResourceOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -227,6 +229,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   Note?: Prisma.NoteListRelationFilter
   KeywordPack?: Prisma.KeywordPackListRelationFilter
+  ExternalResource?: Prisma.ExternalResourceListRelationFilter
 }, "id" | "email" | "googleId">
 
 export type UserOrderByWithAggregationInput = {
@@ -265,6 +268,7 @@ export type UserCreateInput = {
   updatedAt?: Date | string
   Note?: Prisma.NoteCreateNestedManyWithoutAuthorInput
   KeywordPack?: Prisma.KeywordPackCreateNestedManyWithoutAuthorInput
+  ExternalResource?: Prisma.ExternalResourceCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -277,6 +281,7 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   Note?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput
   KeywordPack?: Prisma.KeywordPackUncheckedCreateNestedManyWithoutAuthorInput
+  ExternalResource?: Prisma.ExternalResourceUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUpdateInput = {
@@ -289,6 +294,7 @@ export type UserUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUpdateManyWithoutAuthorNestedInput
   KeywordPack?: Prisma.KeywordPackUpdateManyWithoutAuthorNestedInput
+  ExternalResource?: Prisma.ExternalResourceUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -301,6 +307,7 @@ export type UserUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput
   KeywordPack?: Prisma.KeywordPackUncheckedUpdateManyWithoutAuthorNestedInput
+  ExternalResource?: Prisma.ExternalResourceUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -408,6 +415,20 @@ export type UserUpdateOneRequiredWithoutKeywordPackNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutKeywordPackInput, Prisma.UserUpdateWithoutKeywordPackInput>, Prisma.UserUncheckedUpdateWithoutKeywordPackInput>
 }
 
+export type UserCreateNestedOneWithoutExternalResourceInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExternalResourceInput, Prisma.UserUncheckedCreateWithoutExternalResourceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExternalResourceInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutExternalResourceNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExternalResourceInput, Prisma.UserUncheckedCreateWithoutExternalResourceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExternalResourceInput
+  upsert?: Prisma.UserUpsertWithoutExternalResourceInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExternalResourceInput, Prisma.UserUpdateWithoutExternalResourceInput>, Prisma.UserUncheckedUpdateWithoutExternalResourceInput>
+}
+
 export type UserCreateWithoutNoteInput = {
   id?: string
   email: string
@@ -417,6 +438,7 @@ export type UserCreateWithoutNoteInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   KeywordPack?: Prisma.KeywordPackCreateNestedManyWithoutAuthorInput
+  ExternalResource?: Prisma.ExternalResourceCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutNoteInput = {
@@ -428,6 +450,7 @@ export type UserUncheckedCreateWithoutNoteInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   KeywordPack?: Prisma.KeywordPackUncheckedCreateNestedManyWithoutAuthorInput
+  ExternalResource?: Prisma.ExternalResourceUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutNoteInput = {
@@ -455,6 +478,7 @@ export type UserUpdateWithoutNoteInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   KeywordPack?: Prisma.KeywordPackUpdateManyWithoutAuthorNestedInput
+  ExternalResource?: Prisma.ExternalResourceUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNoteInput = {
@@ -466,6 +490,7 @@ export type UserUncheckedUpdateWithoutNoteInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   KeywordPack?: Prisma.KeywordPackUncheckedUpdateManyWithoutAuthorNestedInput
+  ExternalResource?: Prisma.ExternalResourceUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutKeywordPackInput = {
@@ -477,6 +502,7 @@ export type UserCreateWithoutKeywordPackInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteCreateNestedManyWithoutAuthorInput
+  ExternalResource?: Prisma.ExternalResourceCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutKeywordPackInput = {
@@ -488,6 +514,7 @@ export type UserUncheckedCreateWithoutKeywordPackInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput
+  ExternalResource?: Prisma.ExternalResourceUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutKeywordPackInput = {
@@ -515,6 +542,7 @@ export type UserUpdateWithoutKeywordPackInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUpdateManyWithoutAuthorNestedInput
+  ExternalResource?: Prisma.ExternalResourceUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutKeywordPackInput = {
@@ -526,6 +554,71 @@ export type UserUncheckedUpdateWithoutKeywordPackInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput
+  ExternalResource?: Prisma.ExternalResourceUncheckedUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserCreateWithoutExternalResourceInput = {
+  id?: string
+  email: string
+  name?: string | null
+  googleId?: string | null
+  profileUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  Note?: Prisma.NoteCreateNestedManyWithoutAuthorInput
+  KeywordPack?: Prisma.KeywordPackCreateNestedManyWithoutAuthorInput
+}
+
+export type UserUncheckedCreateWithoutExternalResourceInput = {
+  id?: string
+  email: string
+  name?: string | null
+  googleId?: string | null
+  profileUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  Note?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput
+  KeywordPack?: Prisma.KeywordPackUncheckedCreateNestedManyWithoutAuthorInput
+}
+
+export type UserCreateOrConnectWithoutExternalResourceInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutExternalResourceInput, Prisma.UserUncheckedCreateWithoutExternalResourceInput>
+}
+
+export type UserUpsertWithoutExternalResourceInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutExternalResourceInput, Prisma.UserUncheckedUpdateWithoutExternalResourceInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutExternalResourceInput, Prisma.UserUncheckedCreateWithoutExternalResourceInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutExternalResourceInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutExternalResourceInput, Prisma.UserUncheckedUpdateWithoutExternalResourceInput>
+}
+
+export type UserUpdateWithoutExternalResourceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  Note?: Prisma.NoteUpdateManyWithoutAuthorNestedInput
+  KeywordPack?: Prisma.KeywordPackUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutExternalResourceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  Note?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput
+  KeywordPack?: Prisma.KeywordPackUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 
@@ -536,11 +629,13 @@ export type UserUncheckedUpdateWithoutKeywordPackInput = {
 export type UserCountOutputType = {
   Note: number
   KeywordPack: number
+  ExternalResource: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Note?: boolean | UserCountOutputTypeCountNoteArgs
   KeywordPack?: boolean | UserCountOutputTypeCountKeywordPackArgs
+  ExternalResource?: boolean | UserCountOutputTypeCountExternalResourceArgs
 }
 
 /**
@@ -567,6 +662,13 @@ export type UserCountOutputTypeCountKeywordPackArgs<ExtArgs extends runtime.Type
   where?: Prisma.KeywordPackWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountExternalResourceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExternalResourceWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -578,6 +680,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   Note?: boolean | Prisma.User$NoteArgs<ExtArgs>
   KeywordPack?: boolean | Prisma.User$KeywordPackArgs<ExtArgs>
+  ExternalResource?: boolean | Prisma.User$ExternalResourceArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -615,6 +718,7 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Note?: boolean | Prisma.User$NoteArgs<ExtArgs>
   KeywordPack?: boolean | Prisma.User$KeywordPackArgs<ExtArgs>
+  ExternalResource?: boolean | Prisma.User$ExternalResourceArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -625,6 +729,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     Note: Prisma.$NotePayload<ExtArgs>[]
     KeywordPack: Prisma.$KeywordPackPayload<ExtArgs>[]
+    ExternalResource: Prisma.$ExternalResourcePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1030,6 +1135,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   Note<T extends Prisma.User$NoteArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$NoteArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   KeywordPack<T extends Prisma.User$KeywordPackArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$KeywordPackArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$KeywordPackPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  ExternalResource<T extends Prisma.User$ExternalResourceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ExternalResourceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExternalResourcePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1499,6 +1605,30 @@ export type User$KeywordPackArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.KeywordPackScalarFieldEnum | Prisma.KeywordPackScalarFieldEnum[]
+}
+
+/**
+ * User.ExternalResource
+ */
+export type User$ExternalResourceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ExternalResource
+   */
+  select?: Prisma.ExternalResourceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ExternalResource
+   */
+  omit?: Prisma.ExternalResourceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExternalResourceInclude<ExtArgs> | null
+  where?: Prisma.ExternalResourceWhereInput
+  orderBy?: Prisma.ExternalResourceOrderByWithRelationInput | Prisma.ExternalResourceOrderByWithRelationInput[]
+  cursor?: Prisma.ExternalResourceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExternalResourceScalarFieldEnum | Prisma.ExternalResourceScalarFieldEnum[]
 }
 
 /**
