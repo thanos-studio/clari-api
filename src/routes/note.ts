@@ -13,10 +13,16 @@ noteRouter.use('*', authMiddleware)
 noteRouter.get('/', async (c) => {
   const userId = c.get('userId')
   const limit = parseInt(c.req.query('limit') || '10')
+  const sort = c.req.query('sort') || 'recent_used'
+
+  let orderBy: any = { lastUpdated: 'desc' }
+  if (sort === 'recent_created') {
+    orderBy = { createdAt: 'desc' }
+  }
 
   const notes = await prisma.note.findMany({
     where: { authorId: userId },
-    orderBy: { lastUpdated: 'desc' },
+    orderBy,
     take: limit,
     select: {
       id: true,
