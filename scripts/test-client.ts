@@ -512,7 +512,7 @@ async function stopAndSaveRecording() {
 
   stopRecording();
 
-  const spinner = ora("Stopping and saving recording...").start();
+  const spinner = ora("Stopping and transcribing recording...").start();
 
   try {
     const response = await fetch(`${API_BASE_URL}/notes/session/stop`, {
@@ -527,13 +527,28 @@ async function stopAndSaveRecording() {
     const data = await response.json();
 
     if (response.ok) {
-      spinner.succeed(chalk.green("Recording saved!"));
+      spinner.succeed(chalk.green("Recording saved and transcribed!"));
+      
       console.log(chalk.bold("\n📊 Recording Info:"));
       logInfo(`Duration: ${data.durationInSeconds} seconds`);
       logInfo(`URL: ${data.recordingUrl}`);
-      if (data.transcriptText) {
+      
+      if (data.transcript) {
         console.log(chalk.bold("\n📝 Transcript:"));
-        console.log(chalk.white(data.transcriptText));
+        console.log(chalk.cyan(`Language: ${data.transcript.language} (${(data.transcript.language_probability * 100).toFixed(1)}%)`));
+        console.log(chalk.white(`Words: ${data.transcript.word_count}`));
+        console.log(chalk.bold("\n🔤 Original Text:"));
+        console.log(chalk.white(data.transcript.text));
+        console.log(chalk.bold("\n✨ Formatted Text:"));
+        console.log(chalk.green(data.transcript.formatted));
+      }
+
+      if (data.speakers && data.speakers.length > 0) {
+        console.log(chalk.bold("\n👥 Speakers:"));
+        data.speakers.forEach((speaker: any) => {
+          console.log(chalk.yellow(`  ${speaker.speaker_id}: ${speaker.word_count} words`));
+          console.log(chalk.gray(`    "${speaker.text.substring(0, 100)}..."`));
+        });
       }
 
       // Ask if user wants to download
@@ -666,6 +681,11 @@ async function listNotes() {
       } else if (action === "delete") {
         await deleteNote(selectedNote.id);
       }
+      
+      // Wait for user to press Enter before returning
+      await input({
+        message: chalk.gray("Press Enter to continue..."),
+      });
     } else {
       spinner.fail(chalk.red(`Failed: ${JSON.stringify(data)}`));
     }
