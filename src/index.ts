@@ -3,6 +3,7 @@ import { cors } from 'hono/cors'
 import { upgradeWebSocket, websocket } from 'hono/bun'
 import authRouter from './routes/auth'
 import noteRouter from './routes/note'
+import keywordPackRouter from './routes/keywordpack'
 import { createSttWebSocketHandler } from './routes/stt'
 import createRecordingWebSocketHandler from './routes/recording'
 import { authMiddleware } from './middleware/auth'
@@ -22,6 +23,7 @@ app.get('/', (c) => {
 
 app.route('/auth', authRouter)
 app.route('/notes', noteRouter)
+app.route('/keywordpacks', keywordPackRouter)
 
 const sttRouter = createSttWebSocketHandler(upgradeWebSocket)
 app.route('/ws/stt', sttRouter)
