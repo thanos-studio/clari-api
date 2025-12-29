@@ -1,4 +1,5 @@
-import { Hono } from 'hono'
+import { OpenAPIHono } from '@hono/zod-openapi'
+import { swaggerUI } from '@hono/swagger-ui'
 import { cors } from 'hono/cors'
 import { upgradeWebSocket, websocket } from 'hono/bun'
 import authRouter from './routes/auth'
@@ -14,7 +15,7 @@ type Variables = {
   userId: string
 }
 
-const app = new Hono<{ Variables: Variables }>()
+const app = new OpenAPIHono<{ Variables: Variables }>()
 
 app.use('*', cors())
 
@@ -57,6 +58,23 @@ app.get('/me', authMiddleware, async (c) => {
 
   return c.json({ user })
 })
+
+app.doc('/doc', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'Clari API',
+    description: 'API documentation for Clari - AI-powered note-taking service',
+  },
+  servers: [
+    {
+      url: 'http://localhost:3000',
+      description: 'Development server',
+    },
+  ],
+})
+
+app.get('/swagger', swaggerUI({ url: '/doc' }))
 
 export default {
     port: 3000,
