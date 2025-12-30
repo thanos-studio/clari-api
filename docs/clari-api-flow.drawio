@@ -1,0 +1,253 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36" version="29.2.9">
+  <diagram id="ClariAPI-Flow" name="Clari API Full Flow">
+    <mxGraphModel dx="1219" dy="1179" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" value="Clari API - Complete System Flow" vertex="1">
+          <mxGeometry height="40" width="400" x="400" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="client-layer" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1" value="Client Layer" vertex="1">
+          <mxGeometry height="160" width="200" x="40" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="web-client" parent="client-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Web Client" vertex="1">
+          <mxGeometry height="40" width="160" x="20" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="mobile-client" parent="client-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Mobile App" vertex="1">
+          <mxGeometry height="40" width="160" x="20" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="api-layer" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1" value="API Gateway (Hono + Bun)" vertex="1">
+          <mxGeometry height="420" width="240" x="300" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="auth-service" parent="api-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Auth Service&#xa;(Google OAuth2 + JWT)" vertex="1">
+          <mxGeometry height="50" width="200" x="20" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="note-service" parent="api-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Note Service&#xa;(CRUD Operations)" vertex="1">
+          <mxGeometry height="50" width="200" x="20" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="recording-service" parent="api-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Recording Service&#xa;(WebSocket + STT)" vertex="1">
+          <mxGeometry height="50" width="200" x="20" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="keyword-service" parent="api-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Keyword Pack Service&#xa;(AI Autocomplete/Autofill)" vertex="1">
+          <mxGeometry height="50" width="200" x="20" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="resource-service" parent="api-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="External Resource Service&#xa;(Web Scraping)" vertex="1">
+          <mxGeometry height="50" width="200" x="20" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="db-layer" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1" value="Database Layer" vertex="1">
+          <mxGeometry height="200" width="200" x="600" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="prisma" parent="db-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Prisma ORM" vertex="1">
+          <mxGeometry height="40" width="140" x="30" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="postgres" parent="db-layer" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#e1d5e7;strokeColor=#9673a6;" value="PostgreSQL" vertex="1">
+          <mxGeometry height="70" width="100" x="50" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="external-layer" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1" value="External Services" vertex="1">
+          <mxGeometry height="320" width="220" x="600" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="google-oauth" parent="external-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b0e3e6;strokeColor=#0e8088;" value="Google OAuth2" vertex="1">
+          <mxGeometry height="35" width="180" x="20" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="elevenlabs" parent="external-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b0e3e6;strokeColor=#0e8088;" value="ElevenLabs STT&#xa;(Scribe v2 Realtime)" vertex="1">
+          <mxGeometry height="40" width="180" x="20" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="azure-openai" parent="external-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b0e3e6;strokeColor=#0e8088;" value="Azure OpenAI&#xa;(GPT-4 Text Processing)" vertex="1">
+          <mxGeometry height="40" width="180" x="20" y="145" as="geometry" />
+        </mxCell>
+        <mxCell id="perplexity" parent="external-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b0e3e6;strokeColor=#0e8088;" value="Perplexity AI&#xa;(Keyword Search)" vertex="1">
+          <mxGeometry height="40" width="180" x="20" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="firecrawl" parent="external-layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b0e3e6;strokeColor=#0e8088;" value="Firecrawl&#xa;(Web Scraping)" vertex="1">
+          <mxGeometry height="40" width="180" x="20" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="storage-layer" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1" value="Storage" vertex="1">
+          <mxGeometry height="120" width="200" x="860" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="r2-storage" parent="storage-layer" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d5e8d4;strokeColor=#82b366;" value="Cloudflare R2&#xa;(Audio Files Storage)" vertex="1">
+          <mxGeometry height="65" width="120" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-section" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1" value="Recording Flow (Detailed)" vertex="1">
+          <mxGeometry height="240" width="1020" x="40" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-1" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="1. Create Session&#xa;POST /notes/session" vertex="1">
+          <mxGeometry height="60" width="130" x="20" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-2" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="2. WebSocket Connect&#xa;/notes/session/:id" vertex="1">
+          <mxGeometry height="60" width="130" x="170" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-3" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="3. Stream Audio&#xa;(Base64 PCM 16kHz)" vertex="1">
+          <mxGeometry height="60" width="130" x="320" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-4" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="4. Real-time STT&#xa;(ElevenLabs)" vertex="1">
+          <mxGeometry height="60" width="130" x="470" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-5" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="5. GPT Format&#xa;+ Keyword Match" vertex="1">
+          <mxGeometry height="60" width="130" x="620" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-6" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="6. Stop Recording&#xa;POST /session/stop" vertex="1">
+          <mxGeometry height="60" width="130" x="770" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-7" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="7. Upload to R2&#xa;(WAV File)" vertex="1">
+          <mxGeometry height="60" width="130" x="20" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-8" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="8. Full STT&#xa;(Diarization)" vertex="1">
+          <mxGeometry height="60" width="130" x="170" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-9" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="9. GPT Format&#xa;Full Transcript" vertex="1">
+          <mxGeometry height="60" width="130" x="320" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-10" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="10. Generate Summary&#xa;(GPT-4)" vertex="1">
+          <mxGeometry height="60" width="130" x="470" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-11" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="11. Generate Title&#xa;(GPT-4)" vertex="1">
+          <mxGeometry height="60" width="130" x="620" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-12" parent="flow-section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="12. Save to DB&#xa;Status: Completed" vertex="1">
+          <mxGeometry height="60" width="130" x="770" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-7" edge="1" parent="flow-section" source="flow-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#82b366;" target="flow-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-8" edge="1" parent="flow-section" source="flow-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#82b366;" target="flow-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-9" edge="1" parent="flow-section" source="flow-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#82b366;" target="flow-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-10" edge="1" parent="flow-section" source="flow-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#82b366;" target="flow-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-11" edge="1" parent="flow-section" source="flow-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#9673a6;" target="flow-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-1" edge="1" parent="1" source="web-client" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" target="auth-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-1-label" connectable="0" parent="arrow-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="REST/WS" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-2" edge="1" parent="1" source="mobile-client" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#666666;" target="recording-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-2-label" connectable="0" parent="arrow-2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Audio Stream" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint x="-17" y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-3" edge="1" parent="1" source="note-service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;" target="prisma">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-3-label" connectable="0" parent="arrow-3" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Prisma Query" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint x="-6" y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-4" edge="1" parent="1" source="prisma" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;" target="postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-4-label" connectable="0" parent="arrow-4" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="SQL" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-5" edge="1" parent="1" source="auth-service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0e8088;dashed=1;" target="google-oauth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-5-label" connectable="0" parent="arrow-5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Verify Token" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint x="-42" y="16" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-6" edge="1" parent="1" source="recording-service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0e8088;dashed=1;" target="elevenlabs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-6-label" connectable="0" parent="arrow-6" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Audio → Text" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-7" edge="1" parent="1" source="recording-service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0e8088;dashed=1;" target="azure-openai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-7-label" connectable="0" parent="arrow-7" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Format/Summary" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-8" edge="1" parent="1" source="keyword-service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0e8088;dashed=1;" target="perplexity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-8-label" connectable="0" parent="arrow-8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Search Terms" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-9" edge="1" parent="1" source="resource-service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0e8088;dashed=1;" target="firecrawl">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-9-label" connectable="0" parent="arrow-9" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Scrape URL" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint x="-83" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-10" edge="1" parent="1" source="recording-service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;dashed=1;" target="r2-storage">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="560" y="340" />
+              <mxPoint x="960" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-10-label" connectable="0" parent="arrow-10" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Upload Audio" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint x="53" y="16" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow-arrow-1" edge="1" parent="1" source="flow-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#6c8ebf;" target="flow-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-2" edge="1" parent="1" source="flow-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#6c8ebf;" target="flow-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-3" edge="1" parent="1" source="flow-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#6c8ebf;" target="flow-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-4" edge="1" parent="1" source="flow-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#d6b656;" target="flow-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-5" edge="1" parent="1" source="flow-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#d6b656;" target="flow-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-arrow-6" edge="1" parent="1" source="flow-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#b85450;" target="flow-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="875" y="790" />
+              <mxPoint x="125" y="790" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontStyle=1" value="Legend" vertex="1">
+          <mxGeometry height="200" width="180" x="880" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-1" parent="legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Client Layer" vertex="1">
+          <mxGeometry height="25" width="160" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-2" parent="legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="API Services" vertex="1">
+          <mxGeometry height="25" width="160" x="10" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-3" parent="legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Database" vertex="1">
+          <mxGeometry height="25" width="160" x="10" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-4" parent="legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b0e3e6;strokeColor=#0e8088;" value="External APIs" vertex="1">
+          <mxGeometry height="25" width="160" x="10" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-5" parent="legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Storage" vertex="1">
+          <mxGeometry height="25" width="160" x="10" y="150" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
