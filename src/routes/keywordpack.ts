@@ -216,7 +216,7 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
     console.log(`🚀 [AUTOFILL] Starting: ${query} (${keywordCount} keywords)`)
     
     // Step 1: Fast Perplexity search with optimized settings
-    console.log(`🔍 [AUTOFILL] Step 1/2: Searching with Perplexity...`)
+    console.log(`🔍 [AUTOFILL] Step 1/3: Searching with Perplexity...`)
     const perplexityStart = Date.now()
     
     const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -249,7 +249,7 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
     console.log(`✅ [AUTOFILL] Step 1 complete (${perplexityTime}ms)`)
 
     // Step 2: Quick GPT extraction
-    console.log(`🤖 [AUTOFILL] Step 2/2: Extracting keywords with GPT...`)
+    console.log(`🤖 [AUTOFILL] Step 2/3: Extracting keywords with GPT...`)
     const gptStart = Date.now()
     
     const response = await azureOpenAI.chat.completions.create({
@@ -278,9 +278,52 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
     }
 
     const gptTime = Date.now() - gptStart
-    const totalTime = perplexityTime + gptTime
-    
     console.log(`✅ [AUTOFILL] Step 2 complete (${gptTime}ms)`)
+
+    // Step 3: Generate Korean pronunciations for English terms
+    console.log(`🔤 [AUTOFILL] Step 3/3: Generating Korean pronunciations...`)
+    const pronunciationStart = Date.now()
+    
+    const englishTerms = keywords.filter(k => /^[a-zA-Z0-9\s\-_]+$/.test(k.name))
+    
+    if (englishTerms.length > 0) {
+      const pronunciationResponse = await azureOpenAI.chat.completions.create({
+        model: process.env.AZURE_DEPLOYMENT_NAME!,
+        messages: [
+          {
+            role: 'system',
+            content: `You are a Korean pronunciation generator. For each English term, provide how it sounds in Korean (Hangul). Return ONLY valid JSON.`,
+          },
+          {
+            role: 'user',
+            content: `Generate Korean pronunciations for these terms:\n${englishTerms.map(k => k.name).join(', ')}\n\nJSON format: [{"term":"API","pronunciation":"에이피아이"},{"term":"React","pronunciation":"리액트"}]`,
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: Math.min(englishTerms.length * 30, 2000),
+      })
+
+      const pronunciationContent = pronunciationResponse.choices[0].message.content || '[]'
+      let pronunciations: Array<{ term: string; pronunciation: string }> = []
+
+      try {
+        pronunciations = JSON.parse(pronunciationContent)
+      } catch {
+        console.warn('⚠️ [AUTOFILL] Failed to parse pronunciations')
+      }
+
+      // Merge pronunciations into keywords
+      const pronunciationMap = new Map(pronunciations.map(p => [p.term, p.pronunciation]))
+      keywords = keywords.map(k => ({
+        ...k,
+        koreanPronunciation: pronunciationMap.get(k.name) || undefined
+      }))
+    }
+
+    const pronunciationTime = Date.now() - pronunciationStart
+    const totalTime = perplexityTime + gptTime + pronunciationTime
+    
+    console.log(`✅ [AUTOFILL] Step 3 complete (${pronunciationTime}ms)`)
     console.log(`🎉 [AUTOFILL] Total: ${keywords.length} keywords in ${totalTime}ms`)
 
     return c.json({ 
@@ -288,9 +331,11 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
       stats: {
         perplexityTime,
         gptTime,
+        pronunciationTime,
         totalTime,
         requestedCount: keywordCount,
-        actualCount: keywords.length
+        actualCount: keywords.length,
+        withPronunciation: keywords.filter(k => k.koreanPronunciation).length
       }
     })
   } catch (error) {
