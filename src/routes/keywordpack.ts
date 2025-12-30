@@ -280,8 +280,8 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
     const gptTime = Date.now() - gptStart
     console.log(`✅ [AUTOFILL] Step 2 complete (${gptTime}ms)`)
 
-    // Step 3: Generate Korean pronunciations for English terms
-    console.log(`🔤 [AUTOFILL] Step 3/3: Generating Korean pronunciations...`)
+    // Step 3: Generate Korean pronunciations and synonyms for English terms
+    console.log(`🔤 [AUTOFILL] Step 3/4: Generating Korean pronunciations...`)
     const pronunciationStart = Date.now()
     
     const englishTerms = keywords.filter(k => /^[a-zA-Z0-9\s\-_]+$/.test(k.name))
@@ -292,19 +292,22 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
         messages: [
           {
             role: 'system',
-            content: `You are a Korean pronunciation generator. For each English term, provide how it sounds in Korean (Hangul). Return ONLY valid JSON.`,
+            content: `You are a Korean pronunciation and synonym generator. For each English term, provide:
+1. How it sounds in Korean (Hangul)
+2. Common synonyms or alternative names (e.g., "UX" → ["User Experience", "사용자 경험"])
+Return ONLY valid JSON.`,
           },
           {
             role: 'user',
-            content: `Generate Korean pronunciations for these terms:\n${englishTerms.map(k => k.name).join(', ')}\n\nJSON format: [{"term":"API","pronunciation":"에이피아이"},{"term":"React","pronunciation":"리액트"}]`,
+            content: `Generate Korean pronunciations and synonyms for these terms:\n${englishTerms.map(k => k.name).join(', ')}\n\nJSON format: [{"term":"API","pronunciation":"에이피아이","synonyms":["Application Programming Interface"]},{"term":"UX","pronunciation":"유엑스","synonyms":["User Experience","사용자 경험"]}]`,
           },
         ],
         temperature: 0.1,
-        max_tokens: Math.min(englishTerms.length * 30, 2000),
+        max_tokens: Math.min(englishTerms.length * 60, 3000),
       })
 
       const pronunciationContent = pronunciationResponse.choices[0].message.content || '[]'
-      let pronunciations: Array<{ term: string; pronunciation: string }> = []
+      let pronunciations: Array<{ term: string; pronunciation: string; synonyms?: string[] }> = []
 
       try {
         pronunciations = JSON.parse(pronunciationContent)
@@ -312,18 +315,71 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
         console.warn('⚠️ [AUTOFILL] Failed to parse pronunciations')
       }
 
-      // Merge pronunciations into keywords
-      const pronunciationMap = new Map(pronunciations.map(p => [p.term, p.pronunciation]))
-      keywords = keywords.map(k => ({
-        ...k,
-        koreanPronunciation: pronunciationMap.get(k.name) || undefined
-      }))
+      // Merge pronunciations and synonyms into keywords
+      const pronunciationMap = new Map(pronunciations.map(p => [p.term, { pronunciation: p.pronunciation, synonyms: p.synonyms }]))
+      keywords = keywords.map(k => {
+        const data = pronunciationMap.get(k.name)
+        return {
+          ...k,
+          koreanPronunciation: data?.pronunciation || undefined,
+          synonyms: data?.synonyms || undefined
+        }
+      })
     }
 
     const pronunciationTime = Date.now() - pronunciationStart
-    const totalTime = perplexityTime + gptTime + pronunciationTime
     
     console.log(`✅ [AUTOFILL] Step 3 complete (${pronunciationTime}ms)`)
+    
+    // Step 4: Generate synonyms for all terms (including Korean terms)
+    console.log(`🔗 [AUTOFILL] Step 4/4: Generating additional synonyms...`)
+    const synonymStart = Date.now()
+    
+    const synonymResponse = await azureOpenAI.chat.completions.create({
+      model: process.env.AZURE_DEPLOYMENT_NAME!,
+      messages: [
+        {
+          role: 'system',
+          content: `For each technical term, generate 2-3 alternative names, abbreviations, or related terms that could be used to refer to the same concept.
+Examples:
+- "API" → ["Application Programming Interface", "애플리케이션 인터페이스"]
+- "데이터베이스" → ["DB", "Database", "디비"]
+Return ONLY valid JSON.`,
+        },
+        {
+          role: 'user',
+          content: `Generate synonyms for these terms:\n${keywords.map(k => k.name).join(', ')}\n\nJSON format: [{"term":"API","synonyms":["Application Programming Interface","애플리케이션 인터페이스"]},{"term":"데이터베이스","synonyms":["DB","Database","디비"]}]`,
+        },
+      ],
+      temperature: 0.2,
+      max_tokens: Math.min(keywords.length * 60, 3000),
+    })
+
+    const synonymContent = synonymResponse.choices[0].message.content || '[]'
+    let additionalSynonyms: Array<{ term: string; synonyms: string[] }> = []
+
+    try {
+      additionalSynonyms = JSON.parse(synonymContent)
+    } catch {
+      console.warn('⚠️ [AUTOFILL] Failed to parse additional synonyms')
+    }
+
+    // Merge additional synonyms
+    const synonymMap = new Map(additionalSynonyms.map(s => [s.term, s.synonyms]))
+    keywords = keywords.map(k => {
+      const existingSynonyms = k.synonyms || []
+      const additionalSyns = synonymMap.get(k.name) || []
+      const allSynonyms = [...new Set([...existingSynonyms, ...additionalSyns])] // Remove duplicates
+      return {
+        ...k,
+        synonyms: allSynonyms.length > 0 ? allSynonyms : undefined
+      }
+    })
+
+    const synonymTime = Date.now() - synonymStart
+    const totalTime = perplexityTime + gptTime + pronunciationTime + synonymTime
+    
+    console.log(`✅ [AUTOFILL] Step 4 complete (${synonymTime}ms)`)
     console.log(`🎉 [AUTOFILL] Total: ${keywords.length} keywords in ${totalTime}ms`)
 
     return c.json({ 
@@ -332,10 +388,12 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
         perplexityTime,
         gptTime,
         pronunciationTime,
+        synonymTime,
         totalTime,
         requestedCount: keywordCount,
         actualCount: keywords.length,
-        withPronunciation: keywords.filter(k => k.koreanPronunciation).length
+        withPronunciation: keywords.filter(k => k.koreanPronunciation).length,
+        withSynonyms: keywords.filter(k => k.synonyms && k.synonyms.length > 0).length
       }
     })
   } catch (error) {

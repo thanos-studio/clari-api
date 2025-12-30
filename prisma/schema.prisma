@@ -52,7 +52,7 @@ model Note {
 model KeywordPack {
   id              String   @id @default(uuid())
   name            String
-  keywords        Json     // [{ name: string, description: string, koreanPronunciation?: string }]
+  keywords        Json     // [{ name: string, description: string, koreanPronunciation?: string, synonyms?: string[] }]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   isPublic        Boolean  @default(false)

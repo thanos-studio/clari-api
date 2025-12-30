@@ -125,17 +125,28 @@ async function generateTitleWithGpt(text: string): Promise<string> {
   }
 }
 
-function preprocessTextWithVocabulary(text: string, pronunciationMap: Map<string, string>): string {
-  if (pronunciationMap.size === 0) return text;
+function preprocessTextWithVocabulary(text: string, pronunciationMap: Map<string, string>, synonymMap: Map<string, string>): string {
+  if (pronunciationMap.size === 0 && synonymMap.size === 0) return text;
   
   let processed = text;
   
-  // 한글 발음을 원어로 치환 (긴 단어부터 처리하여 부분 매칭 방지)
-  const sortedEntries = Array.from(pronunciationMap.entries())
+  // 1. 한글 발음을 원어로 치환 (긴 단어부터 처리하여 부분 매칭 방지)
+  const sortedPronunciations = Array.from(pronunciationMap.entries())
     .sort((a, b) => b[0].length - a[0].length);
   
-  for (const [korean, original] of sortedEntries) {
+  for (const [korean, original] of sortedPronunciations) {
     const regex = new RegExp(korean, 'gi');
+    processed = processed.replace(regex, original);
+  }
+  
+  // 2. 동의어를 원어로 치환 (단어 경계 체크)
+  const sortedSynonyms = Array.from(synonymMap.entries())
+    .sort((a, b) => b[0].length - a[0].length);
+  
+  for (const [synonym, original] of sortedSynonyms) {
+    // Escape special regex characters
+    const escapedSynonym = synonym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b${escapedSynonym}\\b`, 'gi');
     processed = processed.replace(regex, original);
   }
   
@@ -151,11 +162,12 @@ interface RecordingSession {
   sttConnection: any; // ElevenLabs realtime STT connection
   transcriptText: string;
   languageCode: string;
-  keywordPack?: { name: string; description: string; koreanPronunciation?: string }[];
+  keywordPack?: { name: string; description: string; koreanPronunciation?: string; synonyms?: string[] }[];
   keywordDetectionEnabled: boolean;
   externalResources?: Array<{ id: string; title: string; displayUrl: string; scrapedContent: string }>;
   resourceHintsEnabled: boolean;
   pronunciationMap: Map<string, string>; // 한글발음 -> 원어 매핑
+  synonymMap: Map<string, string>; // 동의어 -> 원어 매핑
 }
 
 export const activeSessions = new Map<string, RecordingSession>();
@@ -339,8 +351,9 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
             console.log(`✅ [${sessionId}] Access granted for user ${userId}`);
 
             // Load KeywordPacks if attached to the note
-            let keywordPackData: { name: string; description: string; koreanPronunciation?: string }[] = [];
+            let keywordPackData: { name: string; description: string; koreanPronunciation?: string; synonyms?: string[] }[] = [];
             const pronunciationMap = new Map<string, string>();
+            const synonymMap = new Map<string, string>();
             
             if (note.keywordPackIds && Array.isArray(note.keywordPackIds) && note.keywordPackIds.length > 0) {
               console.log(`📚 [${sessionId}] Loading ${note.keywordPackIds.length} KeywordPacks`);
@@ -351,13 +364,23 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
               
               keywordPacks.forEach(pack => {
                 if (Array.isArray(pack.keywords)) {
-                  const keywords = pack.keywords as { name: string; description: string; koreanPronunciation?: string }[];
+                  const keywords = pack.keywords as { name: string; description: string; koreanPronunciation?: string; synonyms?: string[] }[];
                   keywordPackData.push(...keywords);
                   
-                  // Build pronunciation map for preprocessing
+                  // Build pronunciation map and synonym map for preprocessing
                   keywords.forEach(keyword => {
+                    // Add Korean pronunciation mapping
                     if (keyword.koreanPronunciation && keyword.koreanPronunciation.trim()) {
                       pronunciationMap.set(keyword.koreanPronunciation, keyword.name);
+                    }
+                    
+                    // Add synonym mappings
+                    if (keyword.synonyms && Array.isArray(keyword.synonyms)) {
+                      keyword.synonyms.forEach(synonym => {
+                        if (synonym && synonym.trim() && synonym !== keyword.name) {
+                          synonymMap.set(synonym, keyword.name);
+                        }
+                      });
                     }
                   });
                 }
@@ -365,6 +388,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
               
               console.log(`✅ [${sessionId}] Loaded ${keywordPackData.length} total keywords from ${keywordPacks.length} packs`);
               console.log(`✅ [${sessionId}] Built pronunciation map with ${pronunciationMap.size} entries`);
+              console.log(`✅ [${sessionId}] Built synonym map with ${synonymMap.size} entries`);
             }
 
             // Load ExternalResources if attached to the note
@@ -436,6 +460,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
               externalResources: externalResourcesData,
               resourceHintsEnabled: externalResourcesData.length > 0,
               pronunciationMap: pronunciationMap,
+              synonymMap: synonymMap,
             };
 
               if (session) {
@@ -466,8 +491,8 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
                 if (rawText && rawText.trim().length > 0) {
                   console.log(`✅ [${sessionId}] COMMITTED (raw): "${rawText}"`);
                   
-                  // Preprocess text with vocabulary map
-                  const preprocessedText = preprocessTextWithVocabulary(rawText, session!.pronunciationMap);
+                  // Preprocess text with vocabulary and synonym maps
+                  const preprocessedText = preprocessTextWithVocabulary(rawText, session!.pronunciationMap, session!.synonymMap);
                   
                   if (preprocessedText !== rawText) {
                     console.log(`🔄 [${sessionId}] PREPROCESSED: "${preprocessedText}"`);
@@ -479,15 +504,36 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
                   // Check for keywords in the transcribed text
                   if (session!.keywordDetectionEnabled && session!.keywordPack && session!.keywordPack.length > 0) {
                     const detectedKeywords: { name: string; description: string }[] = [];
+                    const detectedKeywordNames = new Set<string>(); // Prevent duplicates
                     
                     session!.keywordPack.forEach(keyword => {
-                      const keywordLower = keyword.name.toLowerCase();
                       const textLower = preprocessedText.toLowerCase();
+                      let isDetected = false;
                       
-                      // Check if keyword appears in text (whole word match)
-                      const regex = new RegExp(`\\b${keywordLower}\\b`, 'i');
-                      if (regex.test(textLower)) {
+                      // 1. Check main keyword name
+                      const keywordLower = keyword.name.toLowerCase();
+                      const keywordRegex = new RegExp(`\\b${keywordLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                      if (keywordRegex.test(textLower)) {
+                        isDetected = true;
+                      }
+                      
+                      // 2. Check synonyms
+                      if (!isDetected && keyword.synonyms && Array.isArray(keyword.synonyms)) {
+                        for (const synonym of keyword.synonyms) {
+                          const synonymLower = synonym.toLowerCase();
+                          const synonymRegex = new RegExp(`\\b${synonymLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                          if (synonymRegex.test(textLower)) {
+                            isDetected = true;
+                            console.log(`🔍 [${sessionId}] Keyword detected via synonym: "${keyword.name}" (matched: "${synonym}")`);
+                            break;
+                          }
+                        }
+                      }
+                      
+                      // Add to detected list if found and not already added
+                      if (isDetected && !detectedKeywordNames.has(keyword.name)) {
                         detectedKeywords.push(keyword);
+                        detectedKeywordNames.add(keyword.name);
                         console.log(`🔍 [${sessionId}] Keyword detected: "${keyword.name}"`);
                       }
                     });
