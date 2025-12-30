@@ -54,6 +54,7 @@ authRouter.post('/google', async (c) => {
           name,
           googleId,
           profileUrl: picture,
+          isActive: false, // 기본값: 비활성 상태
         },
         update: {
           googleId,
@@ -65,7 +66,7 @@ authRouter.post('/google', async (c) => {
 
     const accessToken = generateToken(user.id)
 
-    console.log(`✅ [AUTH] Login successful for user: ${user.id}`)
+    console.log(`✅ [AUTH] Login successful for user: ${user.id} (isActive: ${user.isActive})`)
 
     return c.json({
       accessToken,
@@ -74,11 +75,70 @@ authRouter.post('/google', async (c) => {
         email: user.email,
         name: user.name,
         profileUrl: user.profileUrl,
+        role: user.role,
+        isActive: user.isActive,
       },
     })
   } catch (error) {
     console.error('❌ [AUTH] Google OAuth error:', error)
     return c.json({ error: 'Authentication failed' }, 500)
+  }
+})
+
+authRouter.post('/register/continue', async (c) => {
+  try {
+    const authHeader = c.req.header('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const token = authHeader.substring(7)
+    const { verifyToken } = await import('../utils/jwt')
+    const payload = verifyToken(token)
+
+    if (!payload) {
+      return c.json({ error: 'Invalid token' }, 401)
+    }
+
+    const { role, name } = await c.req.json<{ role: string; name?: string }>()
+
+    if (!role) {
+      return c.json({ error: 'Role is required' }, 400)
+    }
+
+    console.log(`📝 [AUTH] Completing registration for user: ${payload.userId}`)
+    console.log(`   Role: ${role}`)
+    console.log(`   Name: ${name || '(unchanged)'}`)
+
+    const updateData: any = {
+      role,
+      isActive: true,
+    }
+
+    if (name) {
+      updateData.name = name
+    }
+
+    const user = await prisma.user.update({
+      where: { id: payload.userId },
+      data: updateData,
+    })
+
+    console.log(`✅ [AUTH] Registration completed for user: ${user.id}`)
+
+    return c.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profileUrl: user.profileUrl,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    })
+  } catch (error) {
+    console.error('❌ [AUTH] Registration continue error:', error)
+    return c.json({ error: 'Failed to complete registration' }, 500)
   }
 })
 

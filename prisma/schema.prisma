@@ -19,6 +19,8 @@ model User {
   name             String?
   googleId         String?            @unique
   profileUrl       String?
+  role             String?            // 사용자 역할 (예: "student", "teacher", "admin")
+  isActive         Boolean            @default(false) // 회원가입 완료 여부
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   Note             Note[]

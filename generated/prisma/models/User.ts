@@ -30,6 +30,8 @@ export type UserMinAggregateOutputType = {
   name: string | null
   googleId: string | null
   profileUrl: string | null
+  role: string | null
+  isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -40,6 +42,8 @@ export type UserMaxAggregateOutputType = {
   name: string | null
   googleId: string | null
   profileUrl: string | null
+  role: string | null
+  isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +54,8 @@ export type UserCountAggregateOutputType = {
   name: number
   googleId: number
   profileUrl: number
+  role: number
+  isActive: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -62,6 +68,8 @@ export type UserMinAggregateInputType = {
   name?: true
   googleId?: true
   profileUrl?: true
+  role?: true
+  isActive?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -72,6 +80,8 @@ export type UserMaxAggregateInputType = {
   name?: true
   googleId?: true
   profileUrl?: true
+  role?: true
+  isActive?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +92,8 @@ export type UserCountAggregateInputType = {
   name?: true
   googleId?: true
   profileUrl?: true
+  role?: true
+  isActive?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -165,6 +177,8 @@ export type UserGroupByOutputType = {
   name: string | null
   googleId: string | null
   profileUrl: string | null
+  role: string | null
+  isActive: boolean
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -196,6 +210,8 @@ export type UserWhereInput = {
   name?: Prisma.StringNullableFilter<"User"> | string | null
   googleId?: Prisma.StringNullableFilter<"User"> | string | null
   profileUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  role?: Prisma.StringNullableFilter<"User"> | string | null
+  isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   Note?: Prisma.NoteListRelationFilter
@@ -209,6 +225,8 @@ export type UserOrderByWithRelationInput = {
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   profileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  role?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   Note?: Prisma.NoteOrderByRelationAggregateInput
@@ -225,6 +243,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   name?: Prisma.StringNullableFilter<"User"> | string | null
   profileUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  role?: Prisma.StringNullableFilter<"User"> | string | null
+  isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   Note?: Prisma.NoteListRelationFilter
@@ -238,6 +258,8 @@ export type UserOrderByWithAggregationInput = {
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   profileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  role?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -254,6 +276,8 @@ export type UserScalarWhereWithAggregatesInput = {
   name?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   googleId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   profileUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  role?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -264,6 +288,8 @@ export type UserCreateInput = {
   name?: string | null
   googleId?: string | null
   profileUrl?: string | null
+  role?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteCreateNestedManyWithoutAuthorInput
@@ -277,6 +303,8 @@ export type UserUncheckedCreateInput = {
   name?: string | null
   googleId?: string | null
   profileUrl?: string | null
+  role?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput
@@ -290,6 +318,8 @@ export type UserUpdateInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUpdateManyWithoutAuthorNestedInput
@@ -303,6 +333,8 @@ export type UserUncheckedUpdateInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput
@@ -316,6 +348,8 @@ export type UserCreateManyInput = {
   name?: string | null
   googleId?: string | null
   profileUrl?: string | null
+  role?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -326,6 +360,8 @@ export type UserUpdateManyMutationInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -336,6 +372,8 @@ export type UserUncheckedUpdateManyInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -346,6 +384,8 @@ export type UserCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   googleId?: Prisma.SortOrder
   profileUrl?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -356,6 +396,8 @@ export type UserMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   googleId?: Prisma.SortOrder
   profileUrl?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -366,6 +408,8 @@ export type UserMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   googleId?: Prisma.SortOrder
   profileUrl?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -381,6 +425,10 @@ export type StringFieldUpdateOperationsInput = {
 
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -435,6 +483,8 @@ export type UserCreateWithoutNoteInput = {
   name?: string | null
   googleId?: string | null
   profileUrl?: string | null
+  role?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   KeywordPack?: Prisma.KeywordPackCreateNestedManyWithoutAuthorInput
@@ -447,6 +497,8 @@ export type UserUncheckedCreateWithoutNoteInput = {
   name?: string | null
   googleId?: string | null
   profileUrl?: string | null
+  role?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   KeywordPack?: Prisma.KeywordPackUncheckedCreateNestedManyWithoutAuthorInput
@@ -475,6 +527,8 @@ export type UserUpdateWithoutNoteInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   KeywordPack?: Prisma.KeywordPackUpdateManyWithoutAuthorNestedInput
@@ -487,6 +541,8 @@ export type UserUncheckedUpdateWithoutNoteInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   KeywordPack?: Prisma.KeywordPackUncheckedUpdateManyWithoutAuthorNestedInput
@@ -499,6 +555,8 @@ export type UserCreateWithoutKeywordPackInput = {
   name?: string | null
   googleId?: string | null
   profileUrl?: string | null
+  role?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteCreateNestedManyWithoutAuthorInput
@@ -511,6 +569,8 @@ export type UserUncheckedCreateWithoutKeywordPackInput = {
   name?: string | null
   googleId?: string | null
   profileUrl?: string | null
+  role?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput
@@ -539,6 +599,8 @@ export type UserUpdateWithoutKeywordPackInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUpdateManyWithoutAuthorNestedInput
@@ -551,6 +613,8 @@ export type UserUncheckedUpdateWithoutKeywordPackInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput
@@ -563,6 +627,8 @@ export type UserCreateWithoutExternalResourceInput = {
   name?: string | null
   googleId?: string | null
   profileUrl?: string | null
+  role?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteCreateNestedManyWithoutAuthorInput
@@ -575,6 +641,8 @@ export type UserUncheckedCreateWithoutExternalResourceInput = {
   name?: string | null
   googleId?: string | null
   profileUrl?: string | null
+  role?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput
@@ -603,6 +671,8 @@ export type UserUpdateWithoutExternalResourceInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUpdateManyWithoutAuthorNestedInput
@@ -615,6 +685,8 @@ export type UserUncheckedUpdateWithoutExternalResourceInput = {
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput
@@ -676,6 +748,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   name?: boolean
   googleId?: boolean
   profileUrl?: boolean
+  role?: boolean
+  isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   Note?: boolean | Prisma.User$NoteArgs<ExtArgs>
@@ -690,6 +764,8 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   name?: boolean
   googleId?: boolean
   profileUrl?: boolean
+  role?: boolean
+  isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -700,6 +776,8 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   name?: boolean
   googleId?: boolean
   profileUrl?: boolean
+  role?: boolean
+  isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -710,11 +788,13 @@ export type UserSelectScalar = {
   name?: boolean
   googleId?: boolean
   profileUrl?: boolean
+  role?: boolean
+  isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "googleId" | "profileUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "googleId" | "profileUrl" | "role" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Note?: boolean | Prisma.User$NoteArgs<ExtArgs>
   KeywordPack?: boolean | Prisma.User$KeywordPackArgs<ExtArgs>
@@ -737,6 +817,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     name: string | null
     googleId: string | null
     profileUrl: string | null
+    role: string | null
+    isActive: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1170,6 +1252,8 @@ export interface UserFieldRefs {
   readonly name: Prisma.FieldRef<"User", 'String'>
   readonly googleId: Prisma.FieldRef<"User", 'String'>
   readonly profileUrl: Prisma.FieldRef<"User", 'String'>
+  readonly role: Prisma.FieldRef<"User", 'String'>
+  readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }

@@ -1,5 +1,6 @@
 import { Context, Next } from 'hono'
 import { verifyToken } from '../utils/jwt'
+import prisma from '../db'
 
 export async function authMiddleware(c: Context, next: Next) {
   const authHeader = c.req.header('Authorization')
@@ -23,6 +24,25 @@ export async function authMiddleware(c: Context, next: Next) {
   }
 
   console.log(`✅ [AUTH] Token valid for user: ${payload.userId}`)
+  
+  // Check if user is active (except for /auth/register/continue)
+  if (!c.req.path.includes('/auth/register/continue')) {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { isActive: true }
+    })
+
+    if (!user) {
+      console.log(`❌ [AUTH] User not found: ${payload.userId}`)
+      return c.json({ error: 'User not found' }, 404)
+    }
+
+    if (!user.isActive) {
+      console.log(`❌ [AUTH] User not active: ${payload.userId}`)
+      return c.json({ error: 'Account not activated. Please complete registration.' }, 403)
+    }
+  }
+
   c.set('userId', payload.userId)
   await next()
 }

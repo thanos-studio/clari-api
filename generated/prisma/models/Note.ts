@@ -629,10 +629,6 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type NoteUpdatekeywordPackIdsInput = {
   set?: string[]
   push?: string | string[]
