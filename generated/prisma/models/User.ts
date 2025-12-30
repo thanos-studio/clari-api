@@ -56,6 +56,7 @@ export type UserCountAggregateOutputType = {
   profileUrl: number
   role: number
   isActive: number
+  savedKeywordPackIds: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -94,6 +95,7 @@ export type UserCountAggregateInputType = {
   profileUrl?: true
   role?: true
   isActive?: true
+  savedKeywordPackIds?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -179,6 +181,7 @@ export type UserGroupByOutputType = {
   profileUrl: string | null
   role: string | null
   isActive: boolean
+  savedKeywordPackIds: string[]
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -212,6 +215,7 @@ export type UserWhereInput = {
   profileUrl?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.StringNullableFilter<"User"> | string | null
   isActive?: Prisma.BoolFilter<"User"> | boolean
+  savedKeywordPackIds?: Prisma.StringNullableListFilter<"User">
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   Note?: Prisma.NoteListRelationFilter
@@ -227,6 +231,7 @@ export type UserOrderByWithRelationInput = {
   profileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  savedKeywordPackIds?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   Note?: Prisma.NoteOrderByRelationAggregateInput
@@ -245,6 +250,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   profileUrl?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.StringNullableFilter<"User"> | string | null
   isActive?: Prisma.BoolFilter<"User"> | boolean
+  savedKeywordPackIds?: Prisma.StringNullableListFilter<"User">
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   Note?: Prisma.NoteListRelationFilter
@@ -260,6 +266,7 @@ export type UserOrderByWithAggregationInput = {
   profileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  savedKeywordPackIds?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -278,6 +285,7 @@ export type UserScalarWhereWithAggregatesInput = {
   profileUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  savedKeywordPackIds?: Prisma.StringNullableListFilter<"User">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -290,6 +298,7 @@ export type UserCreateInput = {
   profileUrl?: string | null
   role?: string | null
   isActive?: boolean
+  savedKeywordPackIds?: Prisma.UserCreatesavedKeywordPackIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteCreateNestedManyWithoutAuthorInput
@@ -305,6 +314,7 @@ export type UserUncheckedCreateInput = {
   profileUrl?: string | null
   role?: string | null
   isActive?: boolean
+  savedKeywordPackIds?: Prisma.UserCreatesavedKeywordPackIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput
@@ -320,6 +330,7 @@ export type UserUpdateInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUpdateManyWithoutAuthorNestedInput
@@ -335,6 +346,7 @@ export type UserUncheckedUpdateInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput
@@ -350,6 +362,7 @@ export type UserCreateManyInput = {
   profileUrl?: string | null
   role?: string | null
   isActive?: boolean
+  savedKeywordPackIds?: Prisma.UserCreatesavedKeywordPackIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -362,6 +375,7 @@ export type UserUpdateManyMutationInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -374,8 +388,17 @@ export type UserUncheckedUpdateManyInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -386,6 +409,7 @@ export type UserCountOrderByAggregateInput = {
   profileUrl?: Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  savedKeywordPackIds?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -419,6 +443,10 @@ export type UserScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput
 }
 
+export type UserCreatesavedKeywordPackIdsInput = {
+  set: string[]
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -429,6 +457,11 @@ export type NullableStringFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type UserUpdatesavedKeywordPackIdsInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -485,6 +518,7 @@ export type UserCreateWithoutNoteInput = {
   profileUrl?: string | null
   role?: string | null
   isActive?: boolean
+  savedKeywordPackIds?: Prisma.UserCreatesavedKeywordPackIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   KeywordPack?: Prisma.KeywordPackCreateNestedManyWithoutAuthorInput
@@ -499,6 +533,7 @@ export type UserUncheckedCreateWithoutNoteInput = {
   profileUrl?: string | null
   role?: string | null
   isActive?: boolean
+  savedKeywordPackIds?: Prisma.UserCreatesavedKeywordPackIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   KeywordPack?: Prisma.KeywordPackUncheckedCreateNestedManyWithoutAuthorInput
@@ -529,6 +564,7 @@ export type UserUpdateWithoutNoteInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   KeywordPack?: Prisma.KeywordPackUpdateManyWithoutAuthorNestedInput
@@ -543,6 +579,7 @@ export type UserUncheckedUpdateWithoutNoteInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   KeywordPack?: Prisma.KeywordPackUncheckedUpdateManyWithoutAuthorNestedInput
@@ -557,6 +594,7 @@ export type UserCreateWithoutKeywordPackInput = {
   profileUrl?: string | null
   role?: string | null
   isActive?: boolean
+  savedKeywordPackIds?: Prisma.UserCreatesavedKeywordPackIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteCreateNestedManyWithoutAuthorInput
@@ -571,6 +609,7 @@ export type UserUncheckedCreateWithoutKeywordPackInput = {
   profileUrl?: string | null
   role?: string | null
   isActive?: boolean
+  savedKeywordPackIds?: Prisma.UserCreatesavedKeywordPackIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput
@@ -601,6 +640,7 @@ export type UserUpdateWithoutKeywordPackInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUpdateManyWithoutAuthorNestedInput
@@ -615,6 +655,7 @@ export type UserUncheckedUpdateWithoutKeywordPackInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput
@@ -629,6 +670,7 @@ export type UserCreateWithoutExternalResourceInput = {
   profileUrl?: string | null
   role?: string | null
   isActive?: boolean
+  savedKeywordPackIds?: Prisma.UserCreatesavedKeywordPackIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteCreateNestedManyWithoutAuthorInput
@@ -643,6 +685,7 @@ export type UserUncheckedCreateWithoutExternalResourceInput = {
   profileUrl?: string | null
   role?: string | null
   isActive?: boolean
+  savedKeywordPackIds?: Prisma.UserCreatesavedKeywordPackIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   Note?: Prisma.NoteUncheckedCreateNestedManyWithoutAuthorInput
@@ -673,6 +716,7 @@ export type UserUpdateWithoutExternalResourceInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUpdateManyWithoutAuthorNestedInput
@@ -687,6 +731,7 @@ export type UserUncheckedUpdateWithoutExternalResourceInput = {
   profileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedKeywordPackIds?: Prisma.UserUpdatesavedKeywordPackIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   Note?: Prisma.NoteUncheckedUpdateManyWithoutAuthorNestedInput
@@ -750,6 +795,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   profileUrl?: boolean
   role?: boolean
   isActive?: boolean
+  savedKeywordPackIds?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   Note?: boolean | Prisma.User$NoteArgs<ExtArgs>
@@ -766,6 +812,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   profileUrl?: boolean
   role?: boolean
   isActive?: boolean
+  savedKeywordPackIds?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -778,6 +825,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   profileUrl?: boolean
   role?: boolean
   isActive?: boolean
+  savedKeywordPackIds?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -790,11 +838,12 @@ export type UserSelectScalar = {
   profileUrl?: boolean
   role?: boolean
   isActive?: boolean
+  savedKeywordPackIds?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "googleId" | "profileUrl" | "role" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "googleId" | "profileUrl" | "role" | "isActive" | "savedKeywordPackIds" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   Note?: boolean | Prisma.User$NoteArgs<ExtArgs>
   KeywordPack?: boolean | Prisma.User$KeywordPackArgs<ExtArgs>
@@ -819,6 +868,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     profileUrl: string | null
     role: string | null
     isActive: boolean
+    savedKeywordPackIds: string[]
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1254,6 +1304,7 @@ export interface UserFieldRefs {
   readonly profileUrl: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'String'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
+  readonly savedKeywordPackIds: Prisma.FieldRef<"User", 'String[]'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }

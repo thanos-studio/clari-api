@@ -22,7 +22,16 @@ keywordPackRouter.get('/', async (c) => {
   const userId = c.get('userId')
   const limit = parseInt(c.req.query('limit') || '50')
 
-  const packs = await prisma.keywordPack.findMany({
+  // Get user's saved KeywordPack IDs
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { savedKeywordPackIds: true }
+  })
+
+  const savedIds = user?.savedKeywordPackIds || []
+
+  // Get user's own packs
+  const ownPacks = await prisma.keywordPack.findMany({
     where: { authorId: userId },
     orderBy: { updatedAt: 'desc' },
     take: limit,
@@ -34,10 +43,47 @@ keywordPackRouter.get('/', async (c) => {
       updatedAt: true,
       isPublic: true,
       previewImageUrl: true,
+      authorId: true,
     },
   })
 
-  return c.json({ packs })
+  // Get saved public packs
+  const savedPacks = savedIds.length > 0 
+    ? await prisma.keywordPack.findMany({
+        where: { 
+          id: { in: savedIds },
+          isPublic: true 
+        },
+        orderBy: { updatedAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          keywords: true,
+          createdAt: true,
+          updatedAt: true,
+          isPublic: true,
+          previewImageUrl: true,
+          authorId: true,
+        },
+      })
+    : []
+
+  // Mark each pack as owned or saved
+  const ownPacksWithFlag = ownPacks.map(pack => ({
+    ...pack,
+    isOwned: true,
+    isSaved: false,
+  }))
+
+  const savedPacksWithFlag = savedPacks.map(pack => ({
+    ...pack,
+    isOwned: false,
+    isSaved: true,
+  }))
+
+  const allPacks = [...ownPacksWithFlag, ...savedPacksWithFlag]
+
+  return c.json({ packs: allPacks })
 })
 
 keywordPackRouter.get('/:id', async (c) => {
@@ -160,6 +206,116 @@ keywordPackRouter.delete('/:id', async (c) => {
   })
 
   return c.json({ message: 'Keyword pack deleted successfully' })
+})
+
+keywordPackRouter.post('/:id/cloud-save', async (c) => {
+  const userId = c.get('userId')
+  const packId = c.req.param('id')
+
+  console.log(`☁️ [CLOUD-SAVE] User ${userId} attempting to save pack ${packId}`)
+
+  // Check if pack exists and is public
+  const pack = await prisma.keywordPack.findUnique({
+    where: { id: packId },
+    select: { 
+      id: true, 
+      name: true, 
+      isPublic: true, 
+      authorId: true 
+    }
+  })
+
+  if (!pack) {
+    console.log(`❌ [CLOUD-SAVE] Pack not found: ${packId}`)
+    return c.json({ error: 'Keyword pack not found' }, 404)
+  }
+
+  if (!pack.isPublic) {
+    console.log(`❌ [CLOUD-SAVE] Pack is not public: ${packId}`)
+    return c.json({ error: 'This keyword pack is not public' }, 403)
+  }
+
+  // Check if user is trying to save their own pack
+  if (pack.authorId === userId) {
+    console.log(`⚠️ [CLOUD-SAVE] User trying to save own pack`)
+    return c.json({ error: 'You cannot save your own keyword pack' }, 400)
+  }
+
+  // Get user's current saved packs
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { savedKeywordPackIds: true }
+  })
+
+  const savedIds = user?.savedKeywordPackIds || []
+
+  // Check if already saved
+  if (savedIds.includes(packId)) {
+    console.log(`ℹ️ [CLOUD-SAVE] Pack already saved`)
+    return c.json({ 
+      message: 'Keyword pack already saved',
+      pack: {
+        id: pack.id,
+        name: pack.name,
+        isOwned: false,
+        isSaved: true
+      }
+    })
+  }
+
+  // Add to saved packs
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      savedKeywordPackIds: [...savedIds, packId]
+    }
+  })
+
+  console.log(`✅ [CLOUD-SAVE] Pack saved successfully`)
+
+  return c.json({
+    message: 'Keyword pack saved successfully',
+    pack: {
+      id: pack.id,
+      name: pack.name,
+      isOwned: false,
+      isSaved: true
+    }
+  })
+})
+
+keywordPackRouter.delete('/:id/cloud-save', async (c) => {
+  const userId = c.get('userId')
+  const packId = c.req.param('id')
+
+  console.log(`🗑️ [CLOUD-UNSAVE] User ${userId} attempting to unsave pack ${packId}`)
+
+  // Get user's current saved packs
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { savedKeywordPackIds: true }
+  })
+
+  const savedIds = user?.savedKeywordPackIds || []
+
+  if (!savedIds.includes(packId)) {
+    console.log(`⚠️ [CLOUD-UNSAVE] Pack not in saved list`)
+    return c.json({ error: 'Keyword pack is not in your saved list' }, 404)
+  }
+
+  // Remove from saved packs
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      savedKeywordPackIds: savedIds.filter(id => id !== packId)
+    }
+  })
+
+  console.log(`✅ [CLOUD-UNSAVE] Pack unsaved successfully`)
+
+  return c.json({
+    message: 'Keyword pack removed from saved list successfully'
+  })
 })
 
 keywordPackRouter.post('/ai/autocomplete', async (c) => {

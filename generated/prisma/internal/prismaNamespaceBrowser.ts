@@ -81,6 +81,7 @@ export const UserScalarFieldEnum = {
   profileUrl: 'profileUrl',
   role: 'role',
   isActive: 'isActive',
+  savedKeywordPackIds: 'savedKeywordPackIds',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

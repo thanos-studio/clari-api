@@ -14,18 +14,19 @@ datasource db {
 }
 
 model User {
-  id               String             @id @default(uuid())
-  email            String             @unique
-  name             String?
-  googleId         String?            @unique
-  profileUrl       String?
-  role             String?            // 사용자 역할 (예: "student", "teacher", "admin")
-  isActive         Boolean            @default(false) // 회원가입 완료 여부
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  Note             Note[]
-  KeywordPack      KeywordPack[]
-  ExternalResource ExternalResource[]
+  id                    String             @id @default(uuid())
+  email                 String             @unique
+  name                  String?
+  googleId              String?            @unique
+  profileUrl            String?
+  role                  String?            // 사용자 역할
+  isActive              Boolean            @default(false) // 회원가입 완료 여부
+  savedKeywordPackIds   String[]           @default([]) // 저장한 공개 KeywordPack ID 목록
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  Note                  Note[]
+  KeywordPack           KeywordPack[]
+  ExternalResource      ExternalResource[]
 }
 
 model Note {
