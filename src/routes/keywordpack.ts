@@ -86,15 +86,18 @@ keywordPackRouter.get('/', authMiddleware, async (c) => {
 
 keywordPackRouter.get('/:id', async (c) => {
   const packId = c.req.param('id')
+  console.log(`📦 [KEYWORDPACK] GET /${packId}`)
 
   const pack = await prisma.keywordPack.findUnique({
     where: { id: packId },
   })
 
   if (!pack) {
+    console.log(`❌ [KEYWORDPACK] Not found: ${packId}`)
     return c.json({ error: 'Keyword pack not found' }, 404)
   }
 
+  console.log(`✅ [KEYWORDPACK] Found: "${pack.name}" (${pack.id})`)
   return c.json({ pack })
 })
 
