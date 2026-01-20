@@ -37,23 +37,23 @@ async function generateShortTitle(content: string): Promise<string> {
       messages: [
         {
           role: 'system',
-          content: '웹사이트 내용을 보고 10자 이하의 짧은 제목을 생성하세요. 제목만 반환하세요.',
+          content: 'Generate a short title (10 characters or less) based on the website content. Return only the title.',
         },
         {
           role: 'user',
-          content: `다음 내용에 대한 10자 이하의 제목을 만들어주세요:\n\n${content.substring(0, 1000)}`,
+          content: `Create a title of 10 characters or less for the following content:\n\n${content.substring(0, 1000)}`,
         },
       ],
       temperature: 0.3,
       max_tokens: 50,
     })
-    return response.choices[0].message.content?.trim().substring(0, 10) || '외부 자료'
+    return response.choices[0].message.content?.trim().substring(0, 10) || 'Resource'
   } catch {
-    return '외부 자료'
+    return 'Resource'
   }
 }
 
-// GET: List all external resources for the user
+
 externalResourceRouter.get('/', async (c) => {
   const userId = c.get('userId')
   const limit = parseInt(c.req.query('limit') || '50')
@@ -76,7 +76,7 @@ externalResourceRouter.get('/', async (c) => {
   return c.json({ resources })
 })
 
-// GET: Get a specific external resource
+
 externalResourceRouter.get('/:id', async (c) => {
   const userId = c.get('userId')
   const resourceId = c.req.param('id')
@@ -96,7 +96,7 @@ externalResourceRouter.get('/:id', async (c) => {
   return c.json({ resource })
 })
 
-// POST: Create a new external resource with Firecrawl scraping
+
 externalResourceRouter.post('/', async (c) => {
   const userId = c.get('userId')
   const { url } = await c.req.json()
@@ -106,7 +106,6 @@ externalResourceRouter.post('/', async (c) => {
   }
 
   try {
-    // Scrape website with Firecrawl
     console.log(`🔥 [FIRECRAWL] Scraping: ${url}`)
     const scrapeResult = await firecrawl.scrape(url, {
       formats: ['markdown', 'html'],
@@ -115,10 +114,8 @@ externalResourceRouter.post('/', async (c) => {
     const displayUrl = extractDisplayUrl(url)
     const scrapedContent = scrapeResult.markdown || scrapeResult.html || ''
     
-    // Generate short title with GPT
     const title = await generateShortTitle(scrapedContent)
 
-    // Extract logo from metadata
     const metadata = scrapeResult.metadata || {}
     const logoUrl = metadata.ogImage || metadata.favicon || null
 
@@ -144,7 +141,7 @@ externalResourceRouter.post('/', async (c) => {
   }
 })
 
-// PATCH: Update an external resource (only title can be changed)
+
 externalResourceRouter.patch('/:id', async (c) => {
   const userId = c.get('userId')
   const resourceId = c.req.param('id')
@@ -177,7 +174,7 @@ externalResourceRouter.patch('/:id', async (c) => {
   return c.json({ resource: updatedResource })
 })
 
-// DELETE: Delete an external resource
+
 externalResourceRouter.delete('/:id', async (c) => {
   const userId = c.get('userId')
   const resourceId = c.req.param('id')

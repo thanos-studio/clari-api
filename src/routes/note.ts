@@ -135,7 +135,7 @@ noteRouter.post('/:id/ai/explanation', async (c) => {
   console.log(`🤖 [AI-EXPLANATION] Request for note: ${noteId}`)
   console.log(`   Sentence: "${sentence}"`)
 
-  // Get note
+
   const note = await prisma.note.findUnique({
     where: { id: noteId },
   })
@@ -148,7 +148,7 @@ noteRouter.post('/:id/ai/explanation', async (c) => {
     return c.json({ error: 'Access denied' }, 403)
   }
 
-  // Get user role
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { role: true, name: true },
@@ -158,7 +158,7 @@ noteRouter.post('/:id/ai/explanation', async (c) => {
     return c.json({ error: 'User not found' }, 404)
   }
 
-  // Extract full transcript from note content
+
   let fullTranscript = ''
   let formattedTranscript = ''
   
@@ -174,37 +174,36 @@ noteRouter.post('/:id/ai/explanation', async (c) => {
   console.log(`   User role: ${user.role || '(none)'}`)
   console.log(`   Transcript length: ${fullTranscript.length} chars`)
 
-  // Build context-aware prompt
   const roleContext = user.role 
-    ? `이 사용자는 "${user.role}" 역할입니다. 이에 맞춰 설명 수준을 조정해주세요.`
-    : '일반 사용자를 위한 설명을 제공해주세요.'
+    ? `This user has the role "${user.role}". Please adjust the explanation level accordingly.`
+    : 'Please provide explanations for a general user.'
 
-  const systemPrompt = `당신은 학습 내용을 설명하는 AI 튜터입니다.
+  const systemPrompt = `You are an AI tutor that explains learning content.
 
-사용자가 특정 문장에 대한 설명을 요청하면:
-1. 전체 대화/강의 맥락을 파악합니다
-2. 해당 문장이 전체 내용에서 어떤 의미를 가지는지 설명합니다
-3. 핵심 개념이나 용어를 쉽게 풀이합니다
-4. 필요시 예시를 들어 이해를 돕습니다
+When a user requests an explanation for a specific sentence:
+1. Understand the context of the entire conversation/lecture
+2. Explain what meaning this sentence has within the overall content
+3. Explain key concepts or terms in an easy-to-understand way
+4. Provide examples when necessary to aid understanding
 
 ${roleContext}
 
-설명은 다음 형식으로 제공:
-- **맥락**: 이 문장이 전체 내용에서 어떤 부분인지
-- **핵심 설명**: 주요 개념이나 내용 설명
-- **보충 설명**: 추가로 알아두면 좋은 내용 (필요시)
+Provide explanations in the following format:
+- **Context**: Where this sentence fits in the overall content
+- **Core Explanation**: Explanation of main concepts or content
+- **Supplementary Information**: Additional helpful information (when needed)
 
-간결하고 명확하게 설명해주세요.`
+Please explain concisely and clearly.`
 
-  const userPrompt = `전체 대화 내용:
+  const userPrompt = `Full conversation content:
 """
 ${formattedTranscript}
 """
 
-설명이 필요한 문장:
+Sentence that needs explanation:
 "${sentence}"
 
-위 문장에 대해 맥락을 고려하여 설명해주세요.`
+Please explain this sentence considering the context.`
 
   try {
     console.log(`🤖 [AI-EXPLANATION] Calling GPT...`)

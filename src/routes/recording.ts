@@ -26,38 +26,38 @@ const azureClient = new AzureOpenAI({
   apiKey: AZURE_API_KEY,
 });
 
-const CORRECTION_PROMPT = `너는 "실시간 텍스트 정규화 편집기"다.
+const CORRECTION_PROMPT = `You are a "Real-time Text Normalization Editor".
 
-규칙(중요도 순):
-1) 의미/맥락 절대 변경 금지. 문장 재작성 최소화(필요한 부분만 교정).
-2) 한국어로 적힌 전문용어·영문발음(음차)은 가능한 한 정확한 원어(영문, 공식 대소문자)로 치환. (최우선)
-   예시: "에이피아이" → "API", "리액트" → "React", "자바스크립트" → "JavaScript", 
-         "도커" → "Docker", "타입스크립트" → "TypeScript", "깃허브" → "GitHub",
-         "노드" → "Node", "디비" → "DB", "유아이" → "UI", "서버" → "server"
-3) 오타/맞춤법/띄어쓰기/잘못 인식된 발화만 자연스럽게 교정.
-4) 코드블록, \`인라인코드\`, URL, 파일경로, 키/ID, 숫자·단위는 그대로 유지(명백한 오타만 예외).
+Rules (in order of priority):
+1) Never change meaning/context. Minimize sentence rewriting (only correct what's necessary).
+2) Convert phonetic spellings of technical terms to their proper original form (English, official capitalization). (Highest priority)
+   Examples: "api" -> "API", "react" -> "React", "javascript" -> "JavaScript", 
+             "docker" -> "Docker", "typescript" -> "TypeScript", "github" -> "GitHub",
+             "node" -> "Node", "db" -> "DB", "ui" -> "UI", "server" -> "server"
+3) Only naturally correct typos/spelling/spacing/misrecognized speech.
+4) Keep code blocks, \`inline code\`, URLs, file paths, keys/IDs, numbers/units as-is (except obvious typos).
 
-출력: 교정된 텍스트만. 설명/주석/요약 금지.`;
+Output: Only the corrected text. No explanations/comments/summaries.`;
 
-const SUMMARY_PROMPT = `너는 "텍스트 요약 전문가"다.
+const SUMMARY_PROMPT = `You are a "Text Summarization Expert".
 
-규칙:
-1) 주어진 텍스트의 핵심 내용을 최대 4문장으로 요약한다.
-2) 각 문장은 간결하고 명확하게 작성하되, 과도하게 길게 늘리지 않는다.
-3) 중요한 키워드와 맥락을 유지한다.
-4) 요약문만 출력한다. 추가 설명이나 주석 금지.
+Rules:
+1) Summarize the key content of the given text in a maximum of 4 sentences.
+2) Each sentence should be concise and clear, without being excessively long.
+3) Maintain important keywords and context.
+4) Output only the summary. No additional explanations or comments.
 
-출력: 요약된 텍스트만 (최대 4문장).`;
+Output: Only the summarized text (maximum 4 sentences).`;
 
-const TITLE_PROMPT = `너는 "제목 생성 전문가"다.
+const TITLE_PROMPT = `You are a "Title Generation Expert".
 
-규칙:
-1) 주어진 텍스트의 핵심 주제를 파악하여 간결한 제목을 생성한다.
-2) 제목은 최대 50자 이내로 작성한다.
-3) 구체적이고 명확하게 작성하되, 지나치게 길지 않게 한다.
-4) 제목만 출력한다. 추가 설명이나 주석 금지.
+Rules:
+1) Identify the core topic of the given text and generate a concise title.
+2) The title should be within 50 characters maximum.
+3) Be specific and clear, but not excessively long.
+4) Output only the title. No additional explanations or comments.
 
-출력: 제목만.`;
+Output: Only the title.`;
 
 async function normalizeTextWithGpt(text: string): Promise<string> {
   try {
@@ -130,21 +130,18 @@ function preprocessTextWithVocabulary(text: string, pronunciationMap: Map<string
   
   let processed = text;
   
-  // 1. 한글 발음을 원어로 치환 (긴 단어부터 처리하여 부분 매칭 방지)
   const sortedPronunciations = Array.from(pronunciationMap.entries())
     .sort((a, b) => b[0].length - a[0].length);
   
-  for (const [korean, original] of sortedPronunciations) {
-    const regex = new RegExp(korean, 'gi');
+  for (const [phonetic, original] of sortedPronunciations) {
+    const regex = new RegExp(phonetic, 'gi');
     processed = processed.replace(regex, original);
   }
   
-  // 2. 동의어를 원어로 치환 (단어 경계 체크)
   const sortedSynonyms = Array.from(synonymMap.entries())
     .sort((a, b) => b[0].length - a[0].length);
   
   for (const [synonym, original] of sortedSynonyms) {
-    // Escape special regex characters
     const escapedSynonym = synonym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`\\b${escapedSynonym}\\b`, 'gi');
     processed = processed.replace(regex, original);
@@ -166,8 +163,8 @@ interface RecordingSession {
   keywordDetectionEnabled: boolean;
   externalResources?: Array<{ id: string; title: string; displayUrl: string; scrapedContent: string }>;
   resourceHintsEnabled: boolean;
-  pronunciationMap: Map<string, string>; // 한글발음 -> 원어 매핑
-  synonymMap: Map<string, string>; // 동의어 -> 원어 매핑
+  pronunciationMap: Map<string, string>;
+  synonymMap: Map<string, string>;
 }
 
 export const activeSessions = new Map<string, RecordingSession>();
@@ -180,7 +177,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
     const userId = c.get("userId");
     const { title, languageCode, keywordPackIds, externalResourceIds } = await c.req.json();
 
-    const language = languageCode || "ko";
+    const language = languageCode || "en";
 
     console.log(`📝 [SESSION] Creating session for user: ${userId}`);
     console.log(`📝 [SESSION] Title: ${title}`);
@@ -416,13 +413,12 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
               console.log(`✅ [${sessionId}] Loaded ${externalResourcesData.length} external resources`);
             }
 
-            // Note의 content에서 languageCode 추출
-            let languageCode = "ko";
+            let languageCode = "en";
             try {
               const contentData = note.content ? JSON.parse(note.content) : {};
-              languageCode = contentData.languageCode || "ko";
+              languageCode = contentData.languageCode || "en";
             } catch (e) {
-              console.warn(`⚠️ [${sessionId}] Failed to parse content, using default language: ko`);
+              console.warn(`⚠️ [${sessionId}] Failed to parse content, using default language: en`);
             }
 
             console.log(`🎙️ [${sessionId}] Connecting to ElevenLabs STT...`);
@@ -643,7 +639,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
           try {
             const data = JSON.parse(event.data.toString());
 
-            // Handle keyword detection control
+
             if (data.action === "keyword.control") {
               if (data.data === "off") {
                 session.keywordDetectionEnabled = false;
@@ -657,7 +653,7 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
               return;
             }
 
-            // Handle resource hints control
+
             if (data.action === "hints.control") {
               if (data.data === "off") {
                 session.resourceHintsEnabled = false;
@@ -672,11 +668,9 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
             }
 
             if (data.audio) {
-              // Base64 오디오를 Buffer로 변환
               const audioBuffer = Buffer.from(data.audio, "base64");
               session.audioChunks.push(audioBuffer);
 
-              // ElevenLabs로 전송
               if (session.sttConnection) {
                 try {
                   session.sttConnection.send({
@@ -751,7 +745,6 @@ async function finalizeRecording(sessionId: string) {
   console.log(`🛑 [${sessionId}] Finalizing recording...`);
 
   try {
-    // 1. WAV 파일 생성
     const totalAudioBuffer = Buffer.concat(session.audioChunks);
     const durationInSeconds = Math.floor(
       (Date.now() - session.startTime) / 1000
@@ -760,18 +753,16 @@ async function finalizeRecording(sessionId: string) {
     const wavBuffer = createWavBuffer(totalAudioBuffer, SAMPLE_RATE);
     console.log(`📁 [${sessionId}] WAV file created: ${wavBuffer.length} bytes`);
 
-    // 2. R2에 업로드
     const r2Key = `recordings/${session.noteId}.wav`;
     const recordingUrl = await uploadAudioToR2(r2Key, wavBuffer, "audio/wav");
     console.log(`✅ [${sessionId}] Uploaded to R2: ${recordingUrl}`);
 
-    // 3. ElevenLabs Speech-to-Text API 호출 (화자 구분 포함)
     console.log(`🎙️ [${sessionId}] Calling ElevenLabs STT API...`);
     
-    const languageCode = session.languageCode || 'ko';
+    const languageCode = session.languageCode || 'en';
     
     const formData = new FormData();
-    // formData.append('audio', new Blob([wavBuffer], { type: 'audio/wav' }), 'recording.wav');
+
       formData.append("cloud_storage_url", recordingUrl);
     formData.append('model_id', 'scribe_v2');
     formData.append('language_code', languageCode);
@@ -795,7 +786,6 @@ async function finalizeRecording(sessionId: string) {
     console.log(`   Text: ${sttResult.text?.substring(0, 100)}...`);
     console.log(`   Words: ${sttResult.words?.length || 0}`);
 
-    // 4. GPT로 전체 텍스트 교정
     let formattedText = sttResult.text || '';
     if (formattedText.trim()) {
       console.log(`🤖 [${sessionId}] Formatting with GPT...`);
@@ -807,7 +797,6 @@ async function finalizeRecording(sessionId: string) {
       }
     }
 
-    // 5. GPT로 요약 생성
     let aiSummary = '';
     if (formattedText.trim()) {
       console.log(`🤖 [${sessionId}] Generating summary with GPT...`);
@@ -819,7 +808,6 @@ async function finalizeRecording(sessionId: string) {
       }
     }
 
-    // 6. GPT로 제목 생성
     let generatedTitle = '';
     if (formattedText.trim()) {
       console.log(`🤖 [${sessionId}] Generating title with GPT...`);
@@ -832,7 +820,7 @@ async function finalizeRecording(sessionId: string) {
     }
 
     const contentJson = {
-      language_code: sttResult.language_code || 'ko',
+      language_code: sttResult.language_code || 'en',
       language_probability: sttResult.language_probability || 0.0,
       text: sttResult.text || '',
       formatted_text: formattedText,
@@ -842,7 +830,6 @@ async function finalizeRecording(sessionId: string) {
       transcribed_at: new Date().toISOString(),
     };
 
-    // 7. 화자 정보 추출 및 기본 이름 설정
     const speakerIds = new Set<string>();
     if (sttResult.words) {
       sttResult.words.forEach((word: any) => {
@@ -856,7 +843,7 @@ async function finalizeRecording(sessionId: string) {
       .sort()
       .map((speaker_id, index) => ({
         speaker_id,
-        speaker_name: `참석자 ${index + 1}`,
+        speaker_name: `Speaker ${index + 1}`,
       }));
 
     console.log(`👥 [${sessionId}] Detected ${speakers.length} speakers`);
@@ -896,7 +883,7 @@ async function finalizeRecording(sessionId: string) {
       transcript: {
         text: sttResult.text || '',
         formatted: formattedText,
-        language: sttResult.language_code || 'ko',
+        language: sttResult.language_code || 'en',
         language_probability: sttResult.language_probability || 0.0,
         word_count: sttResult.words?.length || 0,
       },

@@ -54,7 +54,7 @@ authRouter.post('/google', async (c) => {
           name,
           googleId,
           profileUrl: picture,
-          isActive: false, // 기본값: 비활성 상태
+          isActive: false,
         },
         update: {
           googleId,

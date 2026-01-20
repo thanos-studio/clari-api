@@ -20,18 +20,18 @@ const azureClient = new AzureOpenAI({
   apiKey: AZURE_API_KEY,
 });
 
-const CORRECTION_PROMPT = `너는 "실시간 텍스트 정규화 편집기"다.
+const CORRECTION_PROMPT = `You are a "Real-time Text Normalization Editor".
 
-규칙(중요도 순):
-1) 의미/맥락 절대 변경 금지. 문장 재작성 최소화(필요한 부분만 교정).
-2) 한국어로 적힌 전문용어·영문발음(음차)은 가능한 한 정확한 원어(영문, 공식 대소문자)로 치환. (최우선)
-   예시: "에이피아이" → "API", "리액트" → "React", "자바스크립트" → "JavaScript", 
-         "도커" → "Docker", "타입스크립트" → "TypeScript", "깃허브" → "GitHub",
-         "노드" → "Node", "디비" → "DB", "유아이" → "UI", "서버" → "server"
-3) 오타/맞춤법/띄어쓰기/잘못 인식된 발화만 자연스럽게 교정.
-4) 코드블록, \`인라인코드\`, URL, 파일경로, 키/ID, 숫자·단위는 그대로 유지(명백한 오타만 예외).
+Rules (in order of priority):
+1) Never change meaning/context. Minimize sentence rewriting (only correct what's necessary).
+2) Convert phonetic spellings of technical terms to their proper original form (English, official capitalization). (Highest priority)
+   Examples: "api" -> "API", "react" -> "React", "javascript" -> "JavaScript", 
+             "docker" -> "Docker", "typescript" -> "TypeScript", "github" -> "GitHub",
+             "node" -> "Node", "db" -> "DB", "ui" -> "UI", "server" -> "server"
+3) Only naturally correct typos/spelling/spacing/misrecognized speech.
+4) Keep code blocks, \`inline code\`, URLs, file paths, keys/IDs, numbers/units as-is (except obvious typos).
 
-출력: 교정된 텍스트만. 설명/주석/요약 금지.`;
+Output: Only the corrected text. No explanations/comments/summaries.`;
 
 async function normalizeTextWithGpt(text: string): Promise<string> {
   try {
@@ -126,18 +126,16 @@ export function createSttWebSocketHandler(upgradeWebSocket: any) {
 
       return {
         async onOpen(_event: any, ws: any) {
-          console.log("WebSocket 연결됨");
+          console.log("WebSocket connected");
 
           try {
-            // ElevenLabs STT 연결
             sttConnection = await elevenlabsClient.speechToText.realtime.connect({
               modelId: "scribe_v2_realtime",
-              languageCode: "ko",
+                languageCode: "en",
               sampleRate: SAMPLE_RATE,
                 audioFormat: AudioFormat.PCM_16000
             });
 
-            // Partial transcript 이벤트
             sttConnection.on(RealtimeEvents.PARTIAL_TRANSCRIPT, (data: { text: any; }) => {
               const text = data.text ?? "";
               if (text) {
@@ -148,7 +146,6 @@ export function createSttWebSocketHandler(upgradeWebSocket: any) {
               }
             });
 
-            // Committed transcript 이벤트
             sttConnection.on(RealtimeEvents.COMMITTED_TRANSCRIPT, (data: { text: any; }) => {
               const text = data.text ?? "";
               if (!text) return;
@@ -169,18 +166,18 @@ export function createSttWebSocketHandler(upgradeWebSocket: any) {
                 console.log(`\n✨ [FORMATTED] ${formattedText}`);
                 ws.send(JSON.stringify(formattedMessage));
               }).catch((e) => {
-                console.error("\n❌ 교정 실패:", e);
+                console.error("\n❌ Correction failed:", e);
               });
             });
 
-            // Error 이벤트
+            // Error event
             sttConnection.on(RealtimeEvents.ERROR, (error: any) => {
               console.error("❌ [STT ERROR]", error);
             });
 
-            console.log("🔗 ElevenLabs STT 연결 완료, 오디오 대기 중...\n");
+            console.log("🔗 ElevenLabs STT connection complete, waiting for audio...\n");
           } catch (e) {
-            console.error("❌ ElevenLabs 연결 실패:", e);
+            console.error("❌ ElevenLabs connection failed:", e);
           }
         },
 
@@ -199,22 +196,22 @@ export function createSttWebSocketHandler(upgradeWebSocket: any) {
                 process.stdout.write("\r⚪️ IDLE  ");
               }, 50);
             } else if (!data.audio) {
-              console.log(`\n⚠️  [WARNING] 'audio' 키 없음: ${Object.keys(data)}`);
+              console.log(`\n⚠️  [WARNING] Missing 'audio' key: ${Object.keys(data)}`);
             }
           } catch (e) {
-            console.error("\n❌ 메시지 파싱 오류:", e);
+            console.error("\n❌ Message parsing error:", e);
           }
         },
 
         async onClose() {
-          console.log("\n🔌 WebSocket 연결 종료");
+          console.log("\n🔌 WebSocket connection closed");
           if (sttConnection) {
               sttConnection.close();
           }
         },
 
         onError(event: any) {
-          console.error("❌ WebSocket 오류:", event);
+          console.error("❌ WebSocket error:", event);
         },
       };
     })

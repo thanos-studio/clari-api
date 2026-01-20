@@ -331,11 +331,11 @@ keywordPackRouter.post('/ai/autocomplete', async (c) => {
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that provides 5 different brief Korean descriptions for technical terms and keywords. Each description should be one concise sentence.',
+          content: 'You are a helpful assistant that provides 5 different brief English descriptions for technical terms and keywords. Each description should be one concise sentence.',
         },
         {
           role: 'user',
-          content: `단어: "${name}"\n\n이 단어에 대한 5가지 다른 한줄 설명을 제공해주세요. 각 설명은 한 문장으로 간결하게 작성하고, JSON 배열 형식으로 반환해주세요: ["설명1", "설명2", "설명3", "설명4", "설명5"]`,
+          content: `Term: "${name}"\n\nPlease provide 5 different one-line descriptions for this term. Each description should be concise, written in one sentence, and return in JSON array format: ["description1", "description2", "description3", "description4", "description5"]`,
         },
       ],
       temperature: 0.7,
@@ -413,11 +413,11 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
       messages: [
         {
           role: 'system',
-          content: `Extract exactly ${keywordCount} technical terms with Korean descriptions. Return ONLY valid JSON array.`,
+          content: `Extract exactly ${keywordCount} technical terms with English descriptions. Return ONLY valid JSON array.`,
         },
         {
           role: 'user',
-          content: `Extract ${keywordCount} terms:\n\n${searchResult}\n\nJSON format: [{"name":"term","description":"Korean desc"}]`,
+          content: `Extract ${keywordCount} terms:\n\n${searchResult}\n\nJSON format: [{"name":"term","description":"English desc"}]`,
         },
       ],
       temperature: 0.2,
@@ -425,7 +425,7 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
     })
 
     const content = response.choices[0].message.content || '[]'
-    let keywords: Array<{ name: string; description: string }>
+    let keywords: Array<{ name: string; description: string; phoneticPronunciation?: string; synonyms?: string[] }>
 
     try {
       keywords = JSON.parse(content)
@@ -436,30 +436,29 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
     const gptTime = Date.now() - gptStart
     console.log(`✅ [AUTOFILL] Step 2 complete (${gptTime}ms)`)
 
-    // Step 3: Generate Korean pronunciations and synonyms for English terms
-    console.log(`🔤 [AUTOFILL] Step 3/4: Generating Korean pronunciations...`)
+    console.log(`🔤 [AUTOFILL] Step 3/4: Generating phonetic pronunciations...`)
     const pronunciationStart = Date.now()
     
-    const englishTerms = keywords.filter(k => /^[a-zA-Z0-9\s\-_]+$/.test(k.name))
+    const technicalTerms = keywords.filter(k => /^[a-zA-Z0-9\s\-_]+$/.test(k.name))
     
-    if (englishTerms.length > 0) {
+    if (technicalTerms.length > 0) {
       const pronunciationResponse = await azureOpenAI.chat.completions.create({
         model: process.env.AZURE_DEPLOYMENT_NAME!,
         messages: [
           {
             role: 'system',
-            content: `You are a Korean pronunciation and synonym generator. For each English term, provide:
-1. How it sounds in Korean (Hangul)
-2. Common synonyms or alternative names (e.g., "UX" → ["User Experience", "사용자 경험"])
+            content: `You are a phonetic pronunciation and synonym generator. For each technical term, provide:
+1. How it sounds phonetically (e.g., "API" -> "ay-pee-eye")
+2. Common synonyms or alternative names (e.g., "UX" -> ["User Experience", "user interface design"])
 Return ONLY valid JSON.`,
           },
           {
             role: 'user',
-            content: `Generate Korean pronunciations and synonyms for these terms:\n${englishTerms.map(k => k.name).join(', ')}\n\nJSON format: [{"term":"API","pronunciation":"에이피아이","synonyms":["Application Programming Interface"]},{"term":"UX","pronunciation":"유엑스","synonyms":["User Experience","사용자 경험"]}]`,
+            content: `Generate phonetic pronunciations and synonyms for these terms:\n${technicalTerms.map(k => k.name).join(', ')}\n\nJSON format: [{"term":"API","pronunciation":"ay-pee-eye","synonyms":["Application Programming Interface"]},{"term":"UX","pronunciation":"you-ex","synonyms":["User Experience","user interface design"]}]`,
           },
         ],
         temperature: 0.1,
-        max_tokens: Math.min(englishTerms.length * 60, 3000),
+        max_tokens: Math.min(technicalTerms.length * 60, 3000),
       })
 
       const pronunciationContent = pronunciationResponse.choices[0].message.content || '[]'
@@ -471,13 +470,12 @@ Return ONLY valid JSON.`,
         console.warn('⚠️ [AUTOFILL] Failed to parse pronunciations')
       }
 
-      // Merge pronunciations and synonyms into keywords
       const pronunciationMap = new Map(pronunciations.map(p => [p.term, { pronunciation: p.pronunciation, synonyms: p.synonyms }]))
       keywords = keywords.map(k => {
         const data = pronunciationMap.get(k.name)
         return {
           ...k,
-          koreanPronunciation: data?.pronunciation || undefined,
+          phoneticPronunciation: data?.pronunciation || undefined,
           synonyms: data?.synonyms || undefined
         }
       })
@@ -487,7 +485,6 @@ Return ONLY valid JSON.`,
     
     console.log(`✅ [AUTOFILL] Step 3 complete (${pronunciationTime}ms)`)
     
-    // Step 4: Generate synonyms for all terms (including Korean terms)
     console.log(`🔗 [AUTOFILL] Step 4/4: Generating additional synonyms...`)
     const synonymStart = Date.now()
     
@@ -498,13 +495,13 @@ Return ONLY valid JSON.`,
           role: 'system',
           content: `For each technical term, generate 2-3 alternative names, abbreviations, or related terms that could be used to refer to the same concept.
 Examples:
-- "API" → ["Application Programming Interface", "애플리케이션 인터페이스"]
-- "데이터베이스" → ["DB", "Database", "디비"]
+- "API" -> ["Application Programming Interface", "web service interface"]
+- "Database" -> ["DB", "data store", "DBMS"]
 Return ONLY valid JSON.`,
         },
         {
           role: 'user',
-          content: `Generate synonyms for these terms:\n${keywords.map(k => k.name).join(', ')}\n\nJSON format: [{"term":"API","synonyms":["Application Programming Interface","애플리케이션 인터페이스"]},{"term":"데이터베이스","synonyms":["DB","Database","디비"]}]`,
+          content: `Generate synonyms for these terms:\n${keywords.map(k => k.name).join(', ')}\n\nJSON format: [{"term":"API","synonyms":["Application Programming Interface","web service interface"]},{"term":"Database","synonyms":["DB","data store","DBMS"]}]`,
         },
       ],
       temperature: 0.2,
@@ -520,12 +517,11 @@ Return ONLY valid JSON.`,
       console.warn('⚠️ [AUTOFILL] Failed to parse additional synonyms')
     }
 
-    // Merge additional synonyms
     const synonymMap = new Map(additionalSynonyms.map(s => [s.term, s.synonyms]))
     keywords = keywords.map(k => {
       const existingSynonyms = k.synonyms || []
       const additionalSyns = synonymMap.get(k.name) || []
-      const allSynonyms = [...new Set([...existingSynonyms, ...additionalSyns])] // Remove duplicates
+      const allSynonyms = Array.from(new Set([...existingSynonyms, ...additionalSyns]))
       return {
         ...k,
         synonyms: allSynonyms.length > 0 ? allSynonyms : undefined
@@ -548,7 +544,7 @@ Return ONLY valid JSON.`,
         totalTime,
         requestedCount: keywordCount,
         actualCount: keywords.length,
-        withPronunciation: keywords.filter(k => k.koreanPronunciation).length,
+        withPronunciation: keywords.filter(k => k.phoneticPronunciation).length,
         withSynonyms: keywords.filter(k => k.synonyms && k.synonyms.length > 0).length
       }
     })
