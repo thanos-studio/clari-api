@@ -1,0 +1,810 @@
+# Clari API - LLM Documentation
+# API 변경사항 및 전체 스펙 (2025-12-30)
+
+## 📋 목차
+1. [새로 추가된 기능](#새로-추가된-기능)
+2. [User 모델 변경](#user-모델-변경)
+3. [KeywordPack 기능 확장](#keywordpack-기능-확장)
+4. [Note AI 설명 기능](#note-ai-설명-기능)
+5. [STT 전처리 시스템](#stt-전처리-시스템)
+6. [전체 API 엔드포인트](#전체-api-엔드포인트)
+
+---
+
+## 🆕 새로 추가된 기능
+
+### 1. 사용자 역할(Role) 및 활성화 시스템
+- Google OAuth 로그인 시 자동 회원가입 (isActive: false)
+- `/auth/register/continue`로 역할 설정 후 활성화
+- 비활성 사용자는 대부분의 API 접근 불가 (403 Forbidden)
+
+### 2. KeywordPack 한글 발음 & 동의어 시스템
+- 영어 단어의 한글 발음 자동 생성
+- 동의어(synonyms) 자동 생성 및 매핑
+- STT 실시간 전처리로 "에이피아이" → "API" 자동 변환
+
+### 3. KeywordPack Cloud Save
+- 공개 KeywordPack 저장 기능
+- 복제 없이 참조만 저장 (savedKeywordPackIds)
+- isOwned/isSaved 플래그로 소유/저장 구분
+
+### 4. Note AI 설명 기능
+- 특정 문장에 대한 맥락 기반 AI 설명
+- 사용자 role에 따른 맞춤형 설명 생성
+- 전체 transcript를 컨텍스트로 활용
+
+---
+
+## 👤 User 모델 변경
+
+### Schema
+```prisma
+model User {
+  id                    String   @id @default(uuid())
+  email                 String   @unique
+  name                  String?
+  googleId              String?  @unique
+  profileUrl            String?
+  role                  String?  // 새로 추가: 사용자 역할 (자유 문자열)
+  isActive              Boolean  @default(false) // 새로 추가: 활성화 여부
+  savedKeywordPackIds   String[] @default([]) // 새로 추가: 저장한 공개 KeywordPack ID 목록
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+```
+
+### 필드 설명
+- **role**: 자유 문자열 (예: "student", "teacher", "admin", "개발자" 등)
+  - AI 설명 생성 시 참고용
+  - student: 초보자 수준 설명
+  - teacher: 교육학적 관점 설명
+  - 기타: 일반적인 설명
+
+- **isActive**: 회원가입 완료 여부
+  - false: 역할 선택 전 (대부분 API 접근 불가)
+  - true: 회원가입 완료 (모든 API 사용 가능)
+
+- **savedKeywordPackIds**: 저장한 공개 KeywordPack ID 배열
+  - 다른 사용자의 공개 팩을 저장할 때 사용
+  - 복제 없이 참조만 저장
+
+---
+
+## 🔐 인증(Auth) API
+
+### 1. Google OAuth 로그인
+```http
+POST /api/auth/google
+Content-Type: application/json
+
+{
+  "idToken": "google-id-token"
+}
+```
+
+**Response:**
+```json
+{
+  "accessToken": "jwt-token",
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "name": "User Name",
+    "profileUrl": "https://...",
+    "role": null,
+    "isActive": false  // ⚠️ 비활성 상태
+  }
+}
+```
+
+**동작:**
+- 첫 로그인: User 생성 (isActive: false)
+- 재로그인: 기존 User 조회
+- JWT 토큰 발급
+
+### 2. 회원가입 완료 (NEW)
+```http
+POST /api/auth/register/continue
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "role": "student",  // 필수
+  "name": "새 이름"   // 선택
+}
+```
+
+**Response:**
+```json
+{
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "name": "새 이름",
+    "profileUrl": "https://...",
+    "role": "student",
+    "isActive": true  // ✅ 활성화됨
+  }
+}
+```
+
+**동작:**
+- role 설정
+- isActive를 true로 변경
+- 이후 모든 API 사용 가능
+
+---
+
+## 📦 KeywordPack 모델 변경
+
+### Schema
+```prisma
+model KeywordPack {
+  id              String   @id @default(uuid())
+  name            String
+  keywords        Json     // 구조 변경됨 (아래 참고)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isPublic        Boolean  @default(false)
+  previewImageUrl String?
+  authorId        String
+}
+```
+
+### Keywords 구조 (변경됨)
+```typescript
+// 기존
+{
+  name: string
+  description: string
+}
+
+// 변경 후
+{
+  name: string                    // 키워드 이름 (예: "API")
+  description: string             // 설명
+  koreanPronunciation?: string    // 새로 추가: 한글 발음 (예: "에이피아이")
+  synonyms?: string[]             // 새로 추가: 동의어 목록 (예: ["Application Programming Interface"])
+}
+```
+
+**예시:**
+```json
+{
+  "name": "API",
+  "description": "Application Programming Interface",
+  "koreanPronunciation": "에이피아이",
+  "synonyms": ["Application Programming Interface", "애플리케이션 인터페이스"]
+}
+```
+
+---
+
+## 📚 KeywordPack API
+
+### 1. 목록 조회 (변경됨)
+```http
+GET /api/keywordpack?limit=50
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "packs": [
+    {
+      "id": "uuid",
+      "name": "내가 만든 팩",
+      "keywords": [...],
+      "isPublic": false,
+      "authorId": "my-user-id",
+      "isOwned": true,   // 새로 추가: 내가 만든 팩
+      "isSaved": false   // 새로 추가: 저장한 팩 여부
+    },
+    {
+      "id": "uuid",
+      "name": "저장한 공개 팩",
+      "keywords": [...],
+      "isPublic": true,
+      "authorId": "other-user-id",
+      "isOwned": false,
+      "isSaved": true    // 다른 사람의 공개 팩을 저장함
+    }
+  ]
+}
+```
+
+**변경사항:**
+- 내가 만든 팩 + 저장한 공개 팩 모두 반환
+- `isOwned`: 내가 만든 팩인지 여부
+- `isSaved`: 다른 사람의 공개 팩을 저장한 것인지 여부
+
+### 2. AI Autofill (변경됨)
+```http
+POST /api/keywordpack/ai/autofill
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "query": "프로그래밍 기초",
+  "count": 50  // 선택, 기본값 50
+}
+```
+
+**Response:**
+```json
+{
+  "keywords": [
+    {
+      "name": "API",
+      "description": "애플리케이션 프로그래밍 인터페이스",
+      "koreanPronunciation": "에이피아이",  // 새로 추가
+      "synonyms": ["Application Programming Interface", "애플리케이션 인터페이스"]  // 새로 추가
+    }
+  ],
+  "stats": {
+    "perplexityTime": 1500,
+    "gptTime": 2000,
+    "pronunciationTime": 800,  // 새로 추가
+    "synonymTime": 1200,        // 새로 추가
+    "totalTime": 5500,
+    "requestedCount": 50,
+    "actualCount": 48,
+    "withPronunciation": 35,    // 새로 추가
+    "withSynonyms": 42          // 새로 추가
+  }
+}
+```
+
+**프로세스 (4단계로 확장):**
+1. Perplexity로 관련 용어 검색
+2. GPT로 키워드 추출 및 한글 설명 생성
+3. GPT로 영어 단어의 한글 발음 생성
+4. GPT로 모든 단어의 동의어 생성
+
+### 3. Cloud Save (NEW)
+```http
+POST /api/keywordpack/:id/cloud-save
+Authorization: Bearer <token>
+```
+
+**Response (성공):**
+```json
+{
+  "message": "Keyword pack saved successfully",
+  "pack": {
+    "id": "uuid",
+    "name": "공개 키워드팩",
+    "isOwned": false,
+    "isSaved": true
+  }
+}
+```
+
+**에러:**
+- 403: Pack이 공개되지 않음
+- 400: 자기 자신의 pack을 저장하려는 경우
+- 200: 이미 저장된 경우
+
+**동작:**
+- 공개(`isPublic: true`)된 KeywordPack만 저장 가능
+- 자기 자신의 팩은 저장 불가
+- User의 `savedKeywordPackIds`에 ID 추가
+- 실제 데이터는 복제하지 않음 (참조만)
+
+### 4. Cloud Unsave (NEW)
+```http
+DELETE /api/keywordpack/:id/cloud-save
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "message": "Keyword pack removed from saved list successfully"
+}
+```
+
+**동작:**
+- User의 `savedKeywordPackIds`에서 ID 제거
+- 원본 데이터는 유지
+
+---
+
+## 📝 Note API
+
+### Note AI 설명 (NEW)
+```http
+POST /api/notes/:id/ai/explanation
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "sentence": "API를 사용해서 React 앱을 만들고 Docker로 배포했습니다"
+}
+```
+
+**Response:**
+```json
+{
+  "sentence": "API를 사용해서 React 앱을 만들고 Docker로 배포했습니다",
+  "explanation": "**맥락**: 이 문장은 웹 애플리케이션 개발의 전체 과정을 설명하는 부분입니다.\n\n**핵심 설명**: \n- API: 프로그램들이 서로 소통할 수 있게 해주는 인터페이스\n- React: 사용자 인터페이스를 만드는 JavaScript 라이브러리\n- Docker: 애플리케이션을 컨테이너로 패키징하여 배포하는 도구\n\n**보충 설명**: 현대적인 웹 개발의 표준 워크플로우입니다.",
+  "context": {
+    "userRole": "student",
+    "noteTitle": "웹 개발 강의",
+    "transcriptLength": 1250
+  },
+  "generatedAt": "2025-12-30T23:35:00.000Z"
+}
+```
+
+**동작:**
+1. Note의 전체 transcript 추출
+2. User의 role 확인
+3. GPT에 전체 맥락 + 사용자 역할 + 특정 문장 전달
+4. 맥락 기반 맞춤형 설명 생성
+
+**역할별 설명 차이:**
+- **student**: 초보자 수준, 비유와 예시 포함
+- **teacher**: 교육학적 관점, 학생 지도 방법 포함
+- **기타**: 일반적인 수준의 설명
+
+**권한:**
+- 본인이 작성한 노트
+- 공개(`isPublic: true`)된 노트
+- 타인의 비공개 노트는 403 Forbidden
+
+---
+
+## 🎙️ STT 전처리 시스템
+
+### 동작 원리
+
+**1. KeywordPack 로드 시:**
+```typescript
+// pronunciation map 생성
+"에이피아이" → "API"
+"리액트" → "React"
+
+// synonym map 생성
+"User Experience" → "UX"
+"Application Programming Interface" → "API"
+"DB" → "데이터베이스"
+```
+
+**2. STT Transcript 수신 시:**
+```typescript
+// 원본: "에이피아이를 사용해서 User Experience를 개선했어요"
+// 
+// 전처리 단계 1: 한글 발음 치환
+// → "API를 사용해서 User Experience를 개선했어요"
+//
+// 전처리 단계 2: 동의어 치환
+// → "API를 사용해서 UX를 개선했어요"
+//
+// GPT 교정 (최종)
+// → "API를 사용해서 UX를 개선했어요" (필요시 추가 교정)
+```
+
+**3. 키워드 감지:**
+```typescript
+// 전처리된 텍스트에서 키워드 감지
+// - 키워드 원어 매칭: "API" 검색
+// - 동의어 매칭: "User Experience" 검색 → "UX" 감지
+```
+
+### Recording WebSocket 변경사항
+
+**RecordingSession 구조:**
+```typescript
+interface RecordingSession {
+  sessionId: string
+  noteId: string
+  userId: string
+  audioChunks: Buffer[]
+  startTime: number
+  sttConnection: any
+  transcriptText: string
+  languageCode: string
+  keywordPack?: {
+    name: string
+    description: string
+    koreanPronunciation?: string  // 새로 추가
+    synonyms?: string[]           // 새로 추가
+  }[]
+  keywordDetectionEnabled: boolean
+  externalResources?: Array<{...}>
+  resourceHintsEnabled: boolean
+  pronunciationMap: Map<string, string>  // 새로 추가: 한글발음 → 원어
+  synonymMap: Map<string, string>        // 새로 추가: 동의어 → 원어
+}
+```
+
+**이벤트 플로우:**
+```
+1. STT에서 COMMITTED_TRANSCRIPT 수신
+   ↓
+2. preprocessTextWithVocabulary() 호출
+   - pronunciationMap 적용 ("에이피아이" → "API")
+   - synonymMap 적용 ("User Experience" → "UX")
+   ↓
+3. 전처리된 텍스트로 키워드 감지
+   ↓
+4. GPT 교정 (normalizeTextWithGpt)
+   ↓
+5. 클라이언트에 전송
+```
+
+---
+
+## 🔄 전체 API 엔드포인트 목록
+
+### 인증 (Auth)
+```
+POST   /api/auth/google                  # Google OAuth 로그인
+POST   /api/auth/register/continue       # 회원가입 완료 (NEW)
+```
+
+### 노트 (Note)
+```
+GET    /api/notes                        # 노트 목록
+GET    /api/notes/:id                    # 노트 상세
+PATCH  /api/notes/:id                    # 노트 수정
+DELETE /api/notes/:id                    # 노트 삭제
+POST   /api/notes/:id/ai/explanation     # AI 설명 생성 (NEW)
+```
+
+### KeywordPack
+```
+GET    /api/keywordpack                  # 목록 조회 (변경됨: isOwned/isSaved 추가)
+GET    /api/keywordpack/:id              # 상세 조회
+POST   /api/keywordpack                  # 생성
+PATCH  /api/keywordpack/:id              # 수정
+DELETE /api/keywordpack/:id              # 삭제
+POST   /api/keywordpack/:id/keywords     # 키워드 추가
+POST   /api/keywordpack/ai/autocomplete  # AI 자동완성
+POST   /api/keywordpack/ai/autofill      # AI Autofill (변경됨: 발음/동의어 추가)
+POST   /api/keywordpack/:id/cloud-save   # 공개 팩 저장 (NEW)
+DELETE /api/keywordpack/:id/cloud-save   # 저장 해제 (NEW)
+```
+
+### 녹음 (Recording)
+```
+POST   /api/recording/session            # 녹음 세션 생성
+WS     /api/recording/session/:id        # WebSocket 연결 (변경됨: 전처리 추가)
+POST   /api/recording/session/stop       # 녹음 중지
+POST   /api/recording/session/cancel     # 녹음 취소
+GET    /api/recording/record/:noteId     # 녹음 파일 조회
+```
+
+### STT (실시간 음성 인식)
+```
+WS     /api/stt                          # WebSocket STT (변경됨: 프롬프트 개선)
+```
+
+### ExternalResource
+```
+GET    /api/externalresource             # 목록 조회
+GET    /api/externalresource/:id         # 상세 조회
+POST   /api/externalresource             # 생성
+PATCH  /api/externalresource/:id         # 수정
+DELETE /api/externalresource/:id         # 삭제
+```
+
+---
+
+## 🔒 인증 미들웨어 변경사항
+
+### authMiddleware (변경됨)
+```typescript
+// 기존: JWT 토큰만 검증
+// 변경: JWT 토큰 + isActive 체크
+
+// 예외 경로: /api/auth/register/continue
+// - 회원가입 완료 전이므로 isActive=false여도 접근 가능
+
+// 그 외 모든 경로:
+// - isActive=false → 403 Forbidden
+// - 에러 메시지: "Account not activated. Please complete registration."
+```
+
+---
+
+## 📊 데이터 플로우 예시
+
+### 1. 신규 사용자 가입 플로우
+```
+1. Google OAuth 로그인
+   → POST /api/auth/google
+   → User 생성 (isActive: false)
+   ↓
+2. 클라이언트에서 isActive 확인
+   → false이면 회원가입 완료 페이지로 이동
+   ↓
+3. 역할 선택 및 정보 입력
+   → POST /api/auth/register/continue
+   → isActive: true로 변경
+   ↓
+4. 모든 API 사용 가능
+```
+
+### 2. KeywordPack 공유 플로우
+```
+1. 사용자 A: KeywordPack 생성 (isPublic: false)
+   ↓
+2. 사용자 A: isPublic을 true로 변경
+   ↓
+3. 사용자 B: 공개 팩 발견
+   → POST /api/keywordpack/{id}/cloud-save
+   → User B의 savedKeywordPackIds에 추가
+   ↓
+4. 사용자 B: GET /api/keywordpack
+   → 자신의 팩 + 저장한 공개 팩 모두 조회
+   → isOwned: false, isSaved: true로 표시
+   ↓
+5. 사용자 A: 팩 업데이트
+   → 사용자 B도 자동으로 최신 버전 사용
+```
+
+### 3. 녹음 및 전처리 플로우
+```
+1. 녹음 세션 생성
+   → KeywordPack 선택 (발음/동의어 포함)
+   ↓
+2. WebSocket 연결
+   → pronunciationMap, synonymMap 생성
+   ↓
+3. STT 음성 인식
+   → "에이피아이를 사용합니다"
+   ↓
+4. 실시간 전처리
+   → "API를 사용합니다"
+   ↓
+5. 키워드 감지
+   → "API" 키워드 감지됨
+   ↓
+6. GPT 교정
+   → "API를 사용합니다" (필요시 추가 교정)
+   ↓
+7. 클라이언트 전송
+   → type: "formatted", text: "API를 사용합니다"
+```
+
+### 4. AI 설명 요청 플로우
+```
+1. 사용자가 transcript에서 문장 선택
+   → "API를 통해 데이터를 가져옵니다"
+   ↓
+2. POST /api/notes/:id/ai/explanation
+   ↓
+3. 서버:
+   - Note의 전체 transcript 추출
+   - User의 role 확인 ("student")
+   - GPT에 컨텍스트 전달
+   ↓
+4. GPT 응답:
+   - 맥락: "데이터 통신 방법 설명 부분"
+   - 핵심: "API는 식당의 웨이터와 같습니다..."
+   - 보충: "HTTP 요청으로 데이터를 주고받습니다"
+   ↓
+5. 클라이언트에 구조화된 설명 반환
+```
+
+---
+
+## 🎯 Kotlin 개발자를 위한 주요 포인트
+
+### 1. 인증 플로우 변경
+```kotlin
+// 기존
+val response = api.googleLogin(idToken)
+// 바로 모든 API 사용 가능
+
+// 변경 후
+val response = api.googleLogin(idToken)
+if (!response.user.isActive) {
+    // 회원가입 완료 화면으로 이동
+    navigateToRegisterContinue()
+} else {
+    // 메인 화면으로 이동
+    navigateToMain()
+}
+
+// 회원가입 완료
+api.registerContinue(role = "student", name = "홍길동")
+```
+
+### 2. KeywordPack 데이터 모델
+```kotlin
+data class Keyword(
+    val name: String,
+    val description: String,
+    val koreanPronunciation: String? = null,  // 새로 추가
+    val synonyms: List<String>? = null        // 새로 추가
+)
+
+data class KeywordPack(
+    val id: String,
+    val name: String,
+    val keywords: List<Keyword>,
+    val isPublic: Boolean,
+    val authorId: String,
+    val isOwned: Boolean,   // 새로 추가
+    val isSaved: Boolean    // 새로 추가
+)
+```
+
+### 3. UI 구분 로직
+```kotlin
+fun renderKeywordPackList(packs: List<KeywordPack>) {
+    // 내가 만든 팩
+    val ownedPacks = packs.filter { it.isOwned }
+    
+    // 저장한 공개 팩
+    val savedPacks = packs.filter { it.isSaved }
+    
+    // UI 렌더링
+    ownedPacks.forEach { pack ->
+        // 수정/삭제 버튼 표시
+        // 공개/비공개 토글 표시
+    }
+    
+    savedPacks.forEach { pack ->
+        // 읽기 전용
+        // 저장 해제 버튼만 표시
+    }
+}
+```
+
+### 4. 에러 처리
+```kotlin
+try {
+    val response = api.getKeywordPacks()
+} catch (e: HttpException) {
+    when (e.code()) {
+        403 -> {
+            if (e.message().contains("not activated")) {
+                // 회원가입 완료 필요
+                showActivationDialog()
+            } else {
+                // 권한 없음
+                showError("접근 권한이 없습니다")
+            }
+        }
+        // ... 기타 에러 처리
+    }
+}
+```
+
+### 5. WebSocket 메시지 타입
+```kotlin
+sealed class STTMessage {
+    data class Partial(val text: String) : STTMessage()
+    data class Committed(val text: String) : STTMessage()
+    data class Formatted(val text: String) : STTMessage()  // 전처리 + GPT 교정
+    data class Keywords(val keywords: List<Keyword>) : STTMessage()
+    data class Hints(val hints: List<Hint>) : STTMessage()
+    data class Error(val error: String) : STTMessage()
+}
+
+// 처리
+when (val message = parseSTTMessage(json)) {
+    is STTMessage.Partial -> updatePartialText(message.text)
+    is STTMessage.Committed -> updateCommittedText(message.text)
+    is STTMessage.Formatted -> {
+        // 최종 교정된 텍스트 (한글발음→원어, 동의어→원어, GPT 교정 완료)
+        updateFormattedText(message.text)
+    }
+    is STTMessage.Keywords -> showKeywordHints(message.keywords)
+    // ...
+}
+```
+
+---
+
+## 📝 변경사항 요약 (Kotlin 개발자용 체크리스트)
+
+### ✅ User 모델
+- [ ] `role: String?` 필드 추가 (DTO 업데이트)
+- [ ] `isActive: Boolean` 필드 추가 (DTO 업데이트)
+- [ ] `savedKeywordPackIds: List<String>` 필드 추가 (DTO 업데이트)
+
+### ✅ 인증 플로우
+- [ ] 로그인 후 `isActive` 체크 로직 추가
+- [ ] 회원가입 완료 화면 구현
+- [ ] `POST /api/auth/register/continue` API 연동
+- [ ] 403 에러 시 "Account not activated" 메시지 처리
+
+### ✅ KeywordPack
+- [ ] `Keyword` 모델에 `koreanPronunciation` 추가
+- [ ] `Keyword` 모델에 `synonyms` 추가
+- [ ] `KeywordPack` 모델에 `isOwned` 추가
+- [ ] `KeywordPack` 모델에 `isSaved` 추가
+- [ ] Cloud Save API 연동 (`POST /cloud-save`)
+- [ ] Cloud Unsave API 연동 (`DELETE /cloud-save`)
+- [ ] UI에서 소유/저장 팩 구분 표시
+
+### ✅ Note
+- [ ] AI 설명 API 연동 (`POST /:id/ai/explanation`)
+- [ ] 설명 표시 UI 구현
+- [ ] Markdown 형식 렌더링 (맥락/핵심/보충)
+
+### ✅ STT/Recording
+- [ ] `formatted` 메시지 타입 처리 (전처리 완료된 텍스트)
+- [ ] 키워드 감지 시 동의어 매칭 고려
+- [ ] UI에 전처리 효과 표시 (선택사항)
+
+---
+
+## 🔍 테스트 시나리오
+
+### 1. 신규 가입 테스트
+```
+1. Google 로그인 → isActive: false 확인
+2. 다른 API 호출 → 403 에러 확인
+3. /auth/register/continue 호출 → isActive: true 확인
+4. 다른 API 정상 호출 확인
+```
+
+### 2. KeywordPack 공유 테스트
+```
+1. 사용자 A: KeywordPack 생성 (isPublic: true)
+2. 사용자 B: cloud-save 호출
+3. 사용자 B: GET /keywordpack → isSaved: true 확인
+4. 사용자 A: 팩 수정
+5. 사용자 B: GET /keywordpack/:id → 최신 버전 확인
+6. 사용자 B: cloud-unsave 호출
+7. 사용자 B: GET /keywordpack → 목록에서 제거 확인
+```
+
+### 3. STT 전처리 테스트
+```
+1. 발음/동의어가 포함된 KeywordPack 선택
+2. 녹음 시작
+3. "에이피아이" 발음 → "API"로 변환 확인
+4. "User Experience" 발음 → "UX"로 변환 확인
+5. 키워드 감지 동작 확인
+```
+
+### 4. AI 설명 테스트
+```
+1. 녹음 완료된 Note 선택
+2. transcript에서 문장 선택
+3. AI 설명 요청
+4. role에 따른 설명 차이 확인
+```
+
+---
+
+## 📚 참고 자료
+
+### API Base URL
+```
+개발: http://localhost:3000/api
+프로덕션: https://api.clari.example.com/api
+```
+
+### 인증 헤더
+```
+Authorization: Bearer <jwt-token>
+```
+
+### WebSocket 인증
+```
+방법 1: Header - Authorization: Bearer <token>
+방법 2: Query - ?token=<token>
+```
+
+### 에러 코드
+```
+400 Bad Request - 잘못된 요청
+401 Unauthorized - 인증 실패
+403 Forbidden - 권한 없음 (isActive=false 포함)
+404 Not Found - 리소스 없음
+500 Internal Server Error - 서버 오류
+```
+
+---
+
+이 문서는 2025-12-30 기준으로 작성되었습니다.
+질문이나 추가 정보가 필요한 경우 백엔드 팀에 문의하세요.

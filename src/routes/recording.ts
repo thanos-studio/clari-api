@@ -52,12 +52,12 @@ Output: Only the summarized text (maximum 4 sentences).`;
 const TITLE_PROMPT = `You are a "Title Generation Expert".
 
 Rules:
-1) Identify the core topic of the given text and generate a concise title.
+1) Identify the core topic of the given text and generate a concise title IN ENGLISH.
 2) The title should be within 50 characters maximum.
 3) Be specific and clear, but not excessively long.
-4) Output only the title. No additional explanations or comments.
+4) Output only the title in English. No additional explanations or comments.
 
-Output: Only the title.`;
+Output: Only the title in English.`;
 
 async function normalizeTextWithGpt(text: string): Promise<string> {
   try {
@@ -534,8 +534,8 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
                       }
                     });
 
-                    // Send detected keywords to client
                     if (detectedKeywords.length > 0) {
+                      console.log(`📚 [${sessionId}] Keywords detected (${detectedKeywords.length}): ${detectedKeywords.map(k => k.name).join(', ')}`);
                       ws.send(JSON.stringify({ 
                         type: "keywords", 
                         keywords: detectedKeywords 
