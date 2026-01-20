@@ -95,10 +95,6 @@ keywordPackRouter.get('/:id', async (c) => {
     return c.json({ error: 'Keyword pack not found' }, 404)
   }
 
-  if (!pack.isPublic) {
-    return c.json({ error: 'Access denied' }, 403)
-  }
-
   return c.json({ pack })
 })
 
@@ -153,16 +149,12 @@ keywordPackRouter.post('/:id/keywords', authMiddleware, async (c) => {
   return c.json({ pack: updatedPack })
 })
 
-keywordPackRouter.patch('/:id', authMiddleware, async (c) => {
-  const userId = c.get('userId')
+keywordPackRouter.patch('/:id', async (c) => {
   const packId = c.req.param('id')
   const { name, keywords, isPublic, previewImageUrl } = await c.req.json()
 
-  const pack = await prisma.keywordPack.findFirst({
-    where: {
-      id: packId,
-      authorId: userId,
-    },
+  const pack = await prisma.keywordPack.findUnique({
+    where: { id: packId },
   })
 
   if (!pack) {
