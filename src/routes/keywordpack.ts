@@ -9,8 +9,6 @@ type Variables = {
 
 const keywordPackRouter = new Hono<{ Variables: Variables }>()
 
-keywordPackRouter.use('*', authMiddleware)
-
 const azureOpenAI = new OpenAI({
   apiKey: process.env.AZURE_API_KEY,
   baseURL: `${process.env.AZURE_ENDPOINT}/openai/deployments/${process.env.AZURE_DEPLOYMENT_NAME}`,
@@ -18,7 +16,7 @@ const azureOpenAI = new OpenAI({
   defaultHeaders: { 'api-key': process.env.AZURE_API_KEY },
 })
 
-keywordPackRouter.get('/', async (c) => {
+keywordPackRouter.get('/', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const limit = parseInt(c.req.query('limit') || '50')
 
@@ -87,7 +85,6 @@ keywordPackRouter.get('/', async (c) => {
 })
 
 keywordPackRouter.get('/:id', async (c) => {
-  const userId = c.get('userId')
   const packId = c.req.param('id')
 
   const pack = await prisma.keywordPack.findUnique({
@@ -98,14 +95,14 @@ keywordPackRouter.get('/:id', async (c) => {
     return c.json({ error: 'Keyword pack not found' }, 404)
   }
 
-  if (!pack.isPublic && pack.authorId !== userId) {
+  if (!pack.isPublic) {
     return c.json({ error: 'Access denied' }, 403)
   }
 
   return c.json({ pack })
 })
 
-keywordPackRouter.post('/', async (c) => {
+keywordPackRouter.post('/', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const { name, keywords, isPublic } = await c.req.json()
 
@@ -125,7 +122,7 @@ keywordPackRouter.post('/', async (c) => {
   return c.json({ pack })
 })
 
-keywordPackRouter.post('/:id/keywords', async (c) => {
+keywordPackRouter.post('/:id/keywords', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const packId = c.req.param('id')
   const { name, description } = await c.req.json()
@@ -156,7 +153,7 @@ keywordPackRouter.post('/:id/keywords', async (c) => {
   return c.json({ pack: updatedPack })
 })
 
-keywordPackRouter.patch('/:id', async (c) => {
+keywordPackRouter.patch('/:id', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const packId = c.req.param('id')
   const { name, keywords, isPublic, previewImageUrl } = await c.req.json()
@@ -186,7 +183,7 @@ keywordPackRouter.patch('/:id', async (c) => {
   return c.json({ pack: updatedPack })
 })
 
-keywordPackRouter.delete('/:id', async (c) => {
+keywordPackRouter.delete('/:id', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const packId = c.req.param('id')
 
@@ -208,7 +205,7 @@ keywordPackRouter.delete('/:id', async (c) => {
   return c.json({ message: 'Keyword pack deleted successfully' })
 })
 
-keywordPackRouter.post('/:id/cloud-save', async (c) => {
+keywordPackRouter.post('/:id/cloud-save', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const packId = c.req.param('id')
 
@@ -284,7 +281,7 @@ keywordPackRouter.post('/:id/cloud-save', async (c) => {
   })
 })
 
-keywordPackRouter.delete('/:id/cloud-save', async (c) => {
+keywordPackRouter.delete('/:id/cloud-save', authMiddleware, async (c) => {
   const userId = c.get('userId')
   const packId = c.req.param('id')
 
@@ -318,7 +315,7 @@ keywordPackRouter.delete('/:id/cloud-save', async (c) => {
   })
 })
 
-keywordPackRouter.post('/ai/autocomplete', async (c) => {
+keywordPackRouter.post('/ai/autocomplete', authMiddleware, async (c) => {
   const { name } = await c.req.json()
 
   if (!name) {
@@ -359,7 +356,7 @@ keywordPackRouter.post('/ai/autocomplete', async (c) => {
   }
 })
 
-keywordPackRouter.post('/ai/autofill', async (c) => {
+keywordPackRouter.post('/ai/autofill', authMiddleware, async (c) => {
   const { query, count } = await c.req.json()
 
   if (!query) {
