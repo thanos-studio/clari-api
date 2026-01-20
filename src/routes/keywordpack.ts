@@ -433,6 +433,19 @@ keywordPackRouter.post('/ai/autofill', async (c) => {
       keywords = []
     }
 
+    keywords = keywords.map(k => {
+      // Pattern: "RDS (Relational Database Service)" -> extract "RDS" and "Relational Database Service" as synonyms
+      const match = k.name.match(/^([A-Z0-9]+)\s*\((.+)\)$/)
+      if (match) {
+        const [, abbreviation, fullName] = match
+        return {
+          ...k,
+          synonyms: [abbreviation, fullName, ...(k.synonyms || [])]
+        }
+      }
+      return k
+    })
+
     const gptTime = Date.now() - gptStart
     console.log(`✅ [AUTOFILL] Step 2 complete (${gptTime}ms)`)
 
