@@ -535,7 +535,10 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
                     });
 
                     if (detectedKeywords.length > 0) {
-                      console.log(`📚 [${sessionId}] Keywords detected (${detectedKeywords.length}): ${detectedKeywords.map(k => k.name).join(', ')}`);
+                      console.log(`📚 [${sessionId}] ===== KEYWORD PACK TRIGGERED =====`);
+                      detectedKeywords.forEach(k => {
+                        console.log(`   📖 "${k.name}": ${k.description}`);
+                      });
                       ws.send(JSON.stringify({ 
                         type: "keywords", 
                         keywords: detectedKeywords 
@@ -580,8 +583,12 @@ export function createRecordingWebSocketHandler(upgradeWebSocket: any) {
                       }
                     }
 
-                    // Send hints to client
                     if (hints.length > 0) {
+                      console.log(`💡 [${sessionId}] ===== EXTERNAL RESOURCE HINTS =====`);
+                      hints.forEach(h => {
+                        console.log(`   🔗 [${h.resourceTitle}] ${h.hint}`);
+                        console.log(`      Source: ${h.sourceUrl}`);
+                      });
                       ws.send(JSON.stringify({ 
                         type: "hints", 
                         hints 
